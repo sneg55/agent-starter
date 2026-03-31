@@ -4,12 +4,18 @@ Reusable skills and templates for Claude Code CLI, extracted from internal sourc
 
 ## Templates
 
+### `templates/NEW_PROJECT_PROMPT.md`
+Copy-paste prompt for Claude Code to scaffold a new project from scratch. Covers directory structure, CLAUDE.md hierarchy, modular rules, error handling, constants, env validation, git setup, and coding standards. Just fill in the {{placeholders}} and go.
+
 ### `templates/CLAUDE.md`
 Drop-in project instructions template with the full 4-type memory taxonomy (user, feedback, project, reference), memory file format, consolidation workflow, recall guidelines, and git safety rules.
 
-**Usage:** Copy to your project root as `CLAUDE.md` and add project-specific instructions at the bottom.
-
+**Usage:**
 ```bash
+# Option A: paste the prompt into Claude Code for a new project
+cat templates/NEW_PROJECT_PROMPT.md
+
+# Option B: drop the CLAUDE.md template into an existing project
 cp templates/CLAUDE.md /path/to/your/project/CLAUDE.md
 ```
 
