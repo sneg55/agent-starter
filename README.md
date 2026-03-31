@@ -33,10 +33,19 @@ Code review and cleanup — spawns 3 parallel agents (Code Reuse, Quality, Effic
 ### /remember
 Memory review and organization — scans auto-memory entries and proposes promotions to CLAUDE.md, CLAUDE.local.md, or shared memory. Detects duplicates, outdated entries, and conflicts.
 
+### /commit
+Create a single well-crafted git commit. Analyzes diff, follows repo's commit style, writes a "why not what" message. Includes Git Safety Protocol.
+
+### /commit-push-pr
+Full git workflow — creates branch, commits, pushes, and creates/updates a PR with summary and test plan. Detects existing PRs and updates them.
+
 ### /dream
 Memory consolidation — reflective pass that merges, prunes, and re-indexes memory files. Run periodically to keep memories organized. Works through 4 phases: orient, gather, consolidate, prune.
 
 ## Guides
+
+### `guides/hooks-reference.md`
+Complete reference for Claude Code's hook system — all 4 hook types, all 27 events, exit code behavior, configuration format, and 10 practical examples (auto-lint, block dangerous commands, agent verification, security review, Slack notifications, and more).
 
 ### `guides/large-codebase-best-practices.md`
 Comprehensive best practices for setting up and scaling a large codebase with Claude Code — directory structure, file size targets, naming conventions, error handling, CLAUDE.md hierarchy, and more. All derived from analyzing Anthropic's own Claude Code CLI source.
