@@ -30,6 +30,11 @@ Memory review and organization — scans auto-memory entries and proposes promot
 ### /dream
 Memory consolidation — reflective pass that merges, prunes, and re-indexes memory files. Run periodically to keep memories organized. Works through 4 phases: orient, gather, consolidate, prune.
 
+## Guides
+
+### `guides/large-codebase-best-practices.md`
+Comprehensive best practices for setting up and scaling a large codebase with Claude Code — directory structure, file size targets, naming conventions, error handling, CLAUDE.md hierarchy, and more. All derived from analyzing Anthropic's own Claude Code CLI source.
+
 ## Memory Taxonomy
 
 The template uses a 4-type memory system:
