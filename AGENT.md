@@ -14,7 +14,7 @@ Ask these questions **one at a time** before taking any action:
    - Skills (commit, commit-push-pr, simplify, remember, dream, new-project)
    - Both
    - Neither
-5. **Repo path** (only if hooks or skills selected) — what is the local path to this repo? (e.g. `~/code/claude-code-skills`)
+5. **Repo path** (only if hooks or skills selected) — what is the local path to this repo? (e.g. `~/code/claude-code-skills`). If the answer to question 4 was "Neither", skip this question.
 
 Do not proceed past this step until you have all answers.
 
@@ -91,7 +91,7 @@ cp <repo-path>/hooks/check-codebase-health.sh ~/.claude/hooks/
 chmod +x ~/.claude/hooks/check-file-size.sh ~/.claude/hooks/check-codebase-health.sh
 ```
 
-Merge this into `~/.claude/settings.json` (do not overwrite existing keys):
+Merge this into `~/.claude/settings.json`. Read the existing file first, then append to the `hooks.PostToolUse` and `hooks.SessionStart` arrays — do not replace existing entries. If the hook command already appears verbatim, skip it:
 
 ```json
 {
@@ -136,6 +136,7 @@ cp -r <repo-path>/skills/commit-push-pr ~/.claude/skills/
 cp -r <repo-path>/skills/simplify ~/.claude/skills/
 cp -r <repo-path>/skills/remember ~/.claude/skills/
 cp -r <repo-path>/skills/dream ~/.claude/skills/
+# new-project skill is included in this repo at skills/new-project/
 cp -r <repo-path>/skills/new-project ~/.claude/skills/
 ```
 
@@ -160,6 +161,6 @@ Confirm each item before reporting done:
 - [ ] Project directory with feature-based structure (`src/commands`, `src/core`, `src/types`, `src/utils`, `src/constants`, `tests/`, `docs/`, `scripts/`)
 - [ ] `CLAUDE.md` present with project name and description filled in
 - [ ] `.gitignore`, `.env.example`, and `README.md` present
-- [ ] Hooks installed and configured in `settings.json` (if selected)
+- [ ] Hooks installed to `~/.claude/hooks/` and configured in `settings.json` (if selected)
 - [ ] Skills installed to `~/.claude/skills/` (if selected)
 - [ ] Initial git commit created
