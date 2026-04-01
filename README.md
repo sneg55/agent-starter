@@ -41,10 +41,10 @@ cp templates/CLAUDE.md /path/to/your/project/CLAUDE.md
 
 ## Skills
 
-Place skill folders in `~/.claude/skills/` (personal) or `.claude/skills/` (per-project).
+Install all skills globally with [npx skills](https://github.com/vercel-labs/skills):
 
 ```bash
-cp -r skills/* ~/.claude/skills/
+npx skills add sneg55/agent-starter -a claude-code -g
 ```
 
 ### /simplify
