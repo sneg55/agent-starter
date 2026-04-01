@@ -9,7 +9,7 @@ Point an AI agent at this repo and say **"read this repo and set up my project"*
 Or install the `/new-project` skill once and run it in any session:
 
 ```bash
-cp -r skills/* ~/.claude/skills/
+npx skills add sneg55/agent-starter -a claude-code -g
 ```
 
 Then: `/new-project`
