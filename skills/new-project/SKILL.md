@@ -39,17 +39,20 @@ Execute these steps in order.
 ### 1. Create directory structure
 
 ```bash
-mkdir -p <project-name>/src/commands
-mkdir -p <project-name>/src/core
-mkdir -p <project-name>/src/types
+mkdir -p <project-name>/src/features
+mkdir -p <project-name>/src/services
 mkdir -p <project-name>/src/utils
+mkdir -p <project-name>/src/types
 mkdir -p <project-name>/src/constants
+mkdir -p <project-name>/src/schemas
+mkdir -p <project-name>/src/entrypoints
+mkdir -p <project-name>/src/migrations
 mkdir -p <project-name>/tests
 mkdir -p <project-name>/docs
 mkdir -p <project-name>/scripts
 ```
 
-Design principle: organize by feature, not by technical layer. Keep files under 200 lines each — that's the target size for AI-readable code. Constants go in `src/constants/` (no magic strings anywhere). Shared TypeScript types go in `src/types/` to avoid import cycles.
+Design principle: organize by feature, not by technical layer. Each feature gets its own directory under `src/features/` with ALL related files (implementation, types, constants, validation, tests). Keep files under 200 lines each. Shared type definitions go in `src/types/` to break import cycles. Named constants go in `src/constants/` (no magic strings anywhere).
 
 ### 2. Generate CLAUDE.md
 
@@ -317,7 +320,7 @@ EOF
 
 Confirm each item before reporting done:
 
-- [ ] Project directory with feature-based structure (`src/commands`, `src/core`, `src/types`, `src/utils`, `src/constants`, `tests/`, `docs/`, `scripts/`)
+- [ ] Project directory with feature-based structure (`src/features`, `src/services`, `src/utils`, `src/types`, `src/constants`, `src/schemas`, `src/entrypoints`, `src/migrations`, `tests/`, `docs/`, `scripts/`)
 - [ ] `CLAUDE.md` present with project name and description filled in
 - [ ] `.gitignore`, `.env.example`, and `README.md` present
 - [ ] Hooks installed to `~/.claude/hooks/` and configured in `settings.json` (if selected)

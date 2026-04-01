@@ -10,11 +10,11 @@ Ask these questions **one at a time** before taking any action:
 2. **Description** — one sentence describing what it does.
 3. **Tech stack** — language, framework, package manager (e.g. "TypeScript, Next.js, pnpm").
 4. **Optional components** — which would you like installed?
-   - Hooks (auto-enforce file size limits and codebase health checks)
-   - Skills (commit, commit-push-pr, simplify, remember, dream, new-project)
+   - Hooks (auto-enforce file size limits and codebase health checks at `~/.claude/hooks/`)
+   - Skills (commit, commit-push-pr, simplify, remember, dream, new-project at `~/.claude/skills/`)
    - Both
    - Neither
-5. **Repo path** (only if hooks or skills selected) — what is the local path to this repo? (e.g. `~/code/agent-starter`). If the answer to question 4 was "Neither", skip this question.
+5. **Repo path** (only if hooks or skills selected) — what is the local path to the agent-starter repo? (e.g. `~/code/agent-starter`). If the answer to question 4 was "Neither", skip this question.
 
 Do not proceed past this step until you have all answers.
 
@@ -31,11 +31,14 @@ Create the project root and subdirectories:
 ```
 <project-name>/
 ├── src/
-│   ├── commands/      # entry points / CLI handlers
-│   ├── core/          # domain logic
-│   ├── types/         # shared interfaces and types
-│   ├── utils/         # stateless helper functions
-│   └── constants/     # named constants, no magic strings
+│   ├── features/      # feature modules — each gets its own directory
+│   ├── services/      # shared business logic by domain
+│   ├── utils/         # truly shared utilities
+│   ├── types/         # shared type definitions (break import cycles here)
+│   ├── constants/     # named constants by domain
+│   ├── schemas/       # validation schemas
+│   ├── entrypoints/   # app entry points
+│   └── migrations/    # data/config format migrations
 ├── tests/
 ├── docs/
 └── scripts/
@@ -158,7 +161,7 @@ EOF
 
 Confirm each item before reporting done:
 
-- [ ] Project directory with feature-based structure (`src/commands`, `src/core`, `src/types`, `src/utils`, `src/constants`, `tests/`, `docs/`, `scripts/`)
+- [ ] Project directory with feature-based structure (`src/features`, `src/services`, `src/utils`, `src/types`, `src/constants`, `src/schemas`, `src/entrypoints`, `src/migrations`, `tests/`, `docs/`, `scripts/`)
 - [ ] `CLAUDE.md` present with project name and description filled in
 - [ ] `.gitignore`, `.env.example`, and `README.md` present
 - [ ] Hooks installed to `~/.claude/hooks/` and configured in `settings.json` (if selected)
