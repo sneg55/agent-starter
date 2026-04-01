@@ -1,6 +1,6 @@
 # agent-starter
 
-Anthropic's own engineering patterns, extracted from the Claude Code CLI source and packaged into reusable skills, templates, and guides for bootstrapping AI-agent-friendly projects.
+Anthropic's own engineering patterns, extracted from the Claude Code CLI source leak and packaged into reusable skills, templates, and guides for bootstrapping AI-agent-friendly projects.
 
 ## Usage
 
