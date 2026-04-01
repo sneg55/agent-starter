@@ -12,9 +12,9 @@ allowed-tools:
 
 # New Project Bootstrap
 
-<!-- Mirrors AGENT.md in the claude-code-skills repo. If guides change, update this skill to match. -->
+<!-- Mirrors AGENT.md in the agent-starter repo. If guides change, update this skill to match. -->
 
-Use when starting a new project from scratch. Scaffolds a complete AI-friendly project following the claude-code-skills patterns: feature-based directory structure, CLAUDE.md with memory taxonomy, config files, optional hooks and skills, first commit.
+Use when starting a new project from scratch. Scaffolds a complete AI-friendly project following the agent-starter patterns: feature-based directory structure, CLAUDE.md with memory taxonomy, config files, optional hooks and skills, first commit.
 
 ## Phase 1: Interview
 
@@ -28,7 +28,7 @@ Ask these questions **one at a time** before taking any action:
    - Skills (commit, commit-push-pr, simplify, remember, dream, new-project at `~/.claude/skills/`)
    - Both
    - Neither
-5. **Repo path** (only if hooks or skills selected) — what is the local path to the claude-code-skills repo? (e.g. `~/code/claude-code-skills`). If the answer to question 4 was "Neither", skip this question.
+5. **Repo path** (only if hooks or skills selected) — what is the local path to the agent-starter repo? (e.g. `~/code/agent-starter`). If the answer to question 4 was "Neither", skip this question.
 
 Do not proceed past this step until you have all answers.
 
@@ -308,7 +308,7 @@ git add .
 git commit -m "$(cat <<'EOF'
 Initial project scaffold
 
-Bootstrapped using claude-code-skills patterns.
+Bootstrapped using agent-starter patterns.
 EOF
 )"
 ```

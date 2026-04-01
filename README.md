@@ -1,6 +1,6 @@
-# Claude Code Skills & Templates
+# agent-starter
 
-Reusable skills and templates for Claude Code CLI, extracted from internal source patterns.
+Reusable skills, templates, and guides for bootstrapping AI-agent-friendly projects with Claude Code.
 
 ## Usage
 

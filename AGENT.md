@@ -14,7 +14,7 @@ Ask these questions **one at a time** before taking any action:
    - Skills (commit, commit-push-pr, simplify, remember, dream, new-project)
    - Both
    - Neither
-5. **Repo path** (only if hooks or skills selected) — what is the local path to this repo? (e.g. `~/code/claude-code-skills`). If the answer to question 4 was "Neither", skip this question.
+5. **Repo path** (only if hooks or skills selected) — what is the local path to this repo? (e.g. `~/code/agent-starter`). If the answer to question 4 was "Neither", skip this question.
 
 Do not proceed past this step until you have all answers.
 
@@ -149,7 +149,7 @@ git add .
 git commit -m "$(cat <<'EOF'
 Initial project scaffold
 
-Bootstrapped using claude-code-skills patterns.
+Bootstrapped using agent-starter patterns.
 EOF
 )"
 ```
