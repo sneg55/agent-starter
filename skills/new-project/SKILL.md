@@ -1,3 +1,15 @@
+---
+name: new-project
+description: Full project bootstrap — interviews the developer (name, description, stack, components), then scaffolds directory structure, CLAUDE.md, config files, hooks, skills, and first commit.
+user_invocable: true
+allowed-tools:
+- Read
+- Write
+- Edit
+- Bash
+- Glob
+---
+
 # New Project Bootstrap
 
 <!-- Mirrors AGENT.md in the claude-code-skills repo. If guides change, update this skill to match. -->
