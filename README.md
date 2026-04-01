@@ -2,6 +2,26 @@
 
 Reusable skills and templates for Claude Code CLI, extracted from internal source patterns.
 
+## Usage
+
+Point an AI agent at this repo and say **"read this repo and set up my project"** — the agent reads `AGENT.md` and scaffolds a complete project interactively.
+
+Or install the `/new-project` skill once and run it in any session:
+
+```bash
+cp -r skills/* ~/.claude/skills/
+```
+
+Then: `/new-project`
+
+## Guides
+
+### `guides/hooks-reference.md`
+Complete reference for Claude Code's hook system — all 4 hook types, all 27 events, exit code behavior, configuration format, and 10 practical examples (auto-lint, block dangerous commands, agent verification, security review, Slack notifications, and more).
+
+### `guides/large-codebase-best-practices.md`
+Comprehensive best practices for setting up and scaling a large codebase with Claude Code — directory structure, file size targets, naming conventions, error handling, CLAUDE.md hierarchy, and more. All derived from analyzing Anthropic's own Claude Code CLI source.
+
 ## Templates
 
 ### `templates/NEW_PROJECT_PROMPT.md`
@@ -42,13 +62,8 @@ Full git workflow — creates branch, commits, pushes, and creates/updates a PR 
 ### /dream
 Memory consolidation — reflective pass that merges, prunes, and re-indexes memory files. Run periodically to keep memories organized. Works through 4 phases: orient, gather, consolidate, prune.
 
-## Guides
-
-### `guides/hooks-reference.md`
-Complete reference for Claude Code's hook system — all 4 hook types, all 27 events, exit code behavior, configuration format, and 10 practical examples (auto-lint, block dangerous commands, agent verification, security review, Slack notifications, and more).
-
-### `guides/large-codebase-best-practices.md`
-Comprehensive best practices for setting up and scaling a large codebase with Claude Code — directory structure, file size targets, naming conventions, error handling, CLAUDE.md hierarchy, and more. All derived from analyzing Anthropic's own Claude Code CLI source.
+### /new-project
+Full project bootstrap — interviews the developer (name, description, stack, components), then scaffolds directory structure, CLAUDE.md, config files, hooks, skills, and first commit. Mirrors `AGENT.md`.
 
 ## Memory Taxonomy
 
