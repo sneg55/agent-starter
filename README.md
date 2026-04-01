@@ -1,6 +1,6 @@
 # agent-starter
 
-Anthropic's own engineering patterns, extracted from the Claude Code CLI source and packaged into installable skills, templates, and guides. `npx skills add sneg55/agent-starter`
+Anthropic's own engineering patterns, extracted from the Claude Code CLI source and packaged into installable skills, templates, and guides. 
 
 ## Usage
 
