@@ -1,6 +1,6 @@
 # agent-starter
 
-Reusable skills, templates, and guides for bootstrapping AI-agent-friendly projects with Claude Code.
+Anthropic's own engineering patterns, extracted from the Claude Code CLI source and packaged into installable skills, templates, and guides. `npx skills add sneg55/agent-starter`
 
 ## Usage
 
