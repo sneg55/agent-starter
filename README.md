@@ -16,11 +16,11 @@ Then: `/new-project`
 
 ## Guides
 
-### `guides/hooks-reference.md`
-Complete reference for Claude Code's hook system — all 4 hook types, all 27 events, exit code behavior, configuration format, and 10 practical examples (auto-lint, block dangerous commands, agent verification, security review, Slack notifications, and more).
-
 ### `guides/large-codebase-best-practices.md`
 Comprehensive best practices for setting up and scaling a large codebase with Claude Code — directory structure, file size targets, naming conventions, error handling, CLAUDE.md hierarchy, and more. All derived from analyzing Anthropic's own Claude Code CLI source.
+
+### `guides/hooks-reference.md`
+Complete reference for Claude Code's hook system — all 4 hook types, all 27 events, exit code behavior, configuration format, and 10 practical examples (auto-lint, block dangerous commands, agent verification, security review, Slack notifications, and more).
 
 ## Templates
 
