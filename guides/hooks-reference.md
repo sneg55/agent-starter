@@ -344,6 +344,86 @@ Hooks let you run shell commands, LLM prompts, verification agents, or HTTP webh
 }
 ```
 
+### Block silent error patterns in code
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/check-silent-errors.sh",
+            "timeout": 10,
+            "statusMessage": "Checking for silent errors..."
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+The `check-silent-errors.sh` script scans written files for swallowed exceptions and blocks the write (exit 2) if found:
+
+```bash
+#!/bin/bash
+# Block writes that introduce silent error handling
+# Catches: bare except, except-pass, empty catch {}, catch-with-only-console.log
+
+FILE_PATH=$(echo "$ARGUMENTS" | jq -r '.file_path // .path // empty' 2>/dev/null)
+[ -z "$FILE_PATH" ] && FILE_PATH="$1"
+[ -z "$FILE_PATH" ] || [ ! -f "$FILE_PATH" ] && exit 0
+
+VIOLATIONS=""
+
+case "$FILE_PATH" in
+  *.py)
+    # Bare except with no type
+    grep -nP '^\s*except\s*:' "$FILE_PATH" | grep -v '# silent-ok' > /tmp/silerr 2>/dev/null && \
+      VIOLATIONS="$VIOLATIONS\n  Bare except:\n$(cat /tmp/silerr)"
+    # except ... : pass
+    grep -nP -A1 '^\s*except\b' "$FILE_PATH" | grep -P '^\s*pass\s*$' > /tmp/silerr 2>/dev/null && \
+      VIOLATIONS="$VIOLATIONS\n  except/pass:\n$(grep -nP -B1 '^\s*pass\s*$' "$FILE_PATH" | grep -P 'except' | head -5)"
+    # except ... : continue
+    grep -nP -A1 '^\s*except\b' "$FILE_PATH" | grep -P '^\s*continue\s*$' > /tmp/silerr 2>/dev/null && \
+      VIOLATIONS="$VIOLATIONS\n  except/continue:\n$(grep -nP -B1 '^\s*continue\s*$' "$FILE_PATH" | grep -P 'except' | head -5)"
+    # except ... : ...
+    grep -nP -A1 '^\s*except\b' "$FILE_PATH" | grep -P '^\s*\.\.\.\s*$' > /tmp/silerr 2>/dev/null && \
+      VIOLATIONS="$VIOLATIONS\n  except/...:\n$(grep -nP -B1 '^\s*\.\.\.\s*$' "$FILE_PATH" | grep -P 'except' | head -5)"
+    ;;
+  *.ts|*.tsx|*.js|*.jsx)
+    # Empty catch block
+    grep -nP 'catch\s*(\([^)]*\))?\s*\{\s*\}' "$FILE_PATH" | grep -v '// silent-ok' > /tmp/silerr 2>/dev/null && \
+      VIOLATIONS="$VIOLATIONS\n  Empty catch block:\n$(cat /tmp/silerr)"
+    # catch with only console.log (not console.error/warn)
+    grep -nP -A1 'catch\s*(\([^)]*\))?\s*\{' "$FILE_PATH" | grep -P '^\s*console\.log\(' > /tmp/silerr 2>/dev/null && \
+      VIOLATIONS="$VIOLATIONS\n  catch with console.log (use console.error):\n$(cat /tmp/silerr)"
+    ;;
+  *) exit 0 ;;
+esac
+
+rm -f /tmp/silerr
+
+if [ -n "$VIOLATIONS" ]; then
+  echo "⛔ SILENT ERROR in $FILE_PATH:$VIOLATIONS" >&2
+  echo "Fix: add logging + re-raise or return sentinel. Exempt with '# silent-ok'." >&2
+  exit 2
+fi
+exit 0
+```
+
+Pair with a CLAUDE.md rule to also fix existing silent errors when touching old files:
+
+```markdown
+### Development Rules
+- **No silent errors** — when editing any file, also fix existing silent error
+  patterns (bare `except:`, `except: pass`, empty `catch {}`). Every exception
+  handler must log with context and either re-raise or return a sentinel.
+  Add `# silent-ok` only for genuinely intentional cases.
+```
+
 ### Watch .env changes and reload
 ```json
 {
