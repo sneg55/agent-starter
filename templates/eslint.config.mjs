@@ -1,6 +1,5 @@
 // ESLint flat config tuned for AI-agent-driven TypeScript codebases.
-// Design goal: block the specific mistakes LLMs make, leave taste to review.
-// Rationale: guides/lint-rules-for-ai.md
+// Rationale, tier-by-tier, in guides/lint-rules-for-ai.md.
 //
 // Assumes: ESLint >= 9, TypeScript, type-aware linting enabled via projectService.
 // Install:

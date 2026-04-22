@@ -1,68 +1,96 @@
 # Lint Rules for AI-Driven Codebases
 
-Ship `templates/eslint.config.mjs` into any new TypeScript project scaffolded from this repo. This doc explains **why** those rules and not others.
+Drop `templates/eslint.config.mjs` into any TypeScript project scaffolded from this repo. This doc explains **why** those rules and not others.
 
 ## Principle
 
-Catch the defects LLMs actually introduce. Pin the agent to project conventions. Leave taste to review.
+Lint is a feedback channel to the agent. Every rule should either:
 
-A popular framing ([ESLint as AI Guardrails](https://medium.com/@albro/eslint-as-ai-guardrails-the-rules-that-make-ai-code-readable-8899c71d3446)) proposes five rules: ban comments, cap params at 2, cap functions at 50 lines, cap files at 250 lines, ban magic numbers. This config deliberately rejects most of it. Those rules optimize for "looks tidy in a demo," not for the failure modes agents exhibit on real codebases — dropped `await`s, `any` escape hatches, hallucinated imports, half-finished functions.
+1. Catch a class of defect LLMs actually introduce, or
+2. Pin the agent to a project-specific convention it would otherwise drift from.
+
+Rules that enforce taste, cosmetics, or arbitrary limits don't belong here — they produce noise the agent learns to suppress.
+
+## What LLMs actually get wrong
+
+Observed failure modes across agent-written TypeScript, in rough order of frequency:
+
+- **Dropped `await`s and misused promises** — fire-and-forget async, `Promise<T>` passed where `T` is expected, `if (asyncFn())` against a truthy promise.
+- **`any` as an escape hatch** — when types don't line up, agents reach for `any`, `as any`, or non-null `!` assertions instead of fixing the shape.
+- **Hallucinated modules and APIs** — imports from packages not in `package.json`, functions that don't exist on the imported symbol.
+- **Half-finished work** — empty function bodies, `TODO` placeholders, unreachable code after an early return, duplicated blocks from a botched refactor.
+- **Silent warning suppression** — `eslint-disable` without justification when a rule trips.
+- **Debug leftovers** — `console.log`, `debugger`, alerts left in after the agent "verifies" something.
+- **Incoherent error handling** — empty `catch`, `throw "string"`, errors swallowed or rethrown without context.
+- **Config sprawl** — `process.env.X` read deep inside modules instead of injected at the boundary.
+- **Module cycles** — circular imports introduced by "helpful" extractions.
+
+The ruleset is organized around these.
 
 ## Tiers
 
-### Tier 1 — Correctness
-The bugs LLMs actually ship. Non-negotiable.
-- **Async correctness**: `no-floating-promises`, `no-misused-promises`, `require-await`, `await-thenable`, `return-await`. Agents drop `await` constantly.
-- **Type safety**: `no-explicit-any`, `no-unsafe-*`, `no-non-null-assertion`, `strict-boolean-expressions`, `switch-exhaustiveness-check`, `no-unnecessary-condition`. `any` is the LLM's escape hatch — close it.
-- **Dead / hallucinated code**: `no-unused-vars`, `no-unreachable`, `no-constant-condition`, `no-self-compare`.
-- **Errors**: `no-throw-literal`, `only-throw-error`, `no-empty` (no `allowEmptyCatch`).
+### Tier 1 — Correctness (`error`)
+The bugs. Non-negotiable.
+- **Async**: `no-floating-promises`, `no-misused-promises`, `require-await`, `await-thenable`, `return-await`.
+- **Type safety**: `no-explicit-any`, the full `no-unsafe-*` family, `no-non-null-assertion`, `strict-boolean-expressions`, `switch-exhaustiveness-check`, `no-unnecessary-condition`.
+- **Dead / incoherent code**: `no-unused-vars`, `no-unreachable`, `no-constant-condition`, `no-constant-binary-expression`, `no-self-compare`.
+- **Equality**: `eqeqeq` (with `null: 'ignore'`).
+- **Errors**: `no-throw-literal`, `only-throw-error`, `no-empty` (catches count).
 
-### Tier 2 — Imports & dependency hygiene
-Highest-ROI rules almost nobody turns on.
-- `import/no-unresolved`, `import/no-cycle`, `import/no-duplicates`, `import/no-extraneous-dependencies` — catch hallucinated modules, invented packages, cycles.
-- `consistent-type-imports` — keeps type/value imports separated, helps tree-shaking and transpile correctness.
-- `no-restricted-imports` — pin the agent away from `lodash`/`moment`/`axios` picks and deep `../../../` paths.
+### Tier 2 — Imports & dependencies
+Highest-ROI rules, often skipped.
+- `import/no-unresolved` — catches hallucinated module paths.
+- `import/no-extraneous-dependencies` — catches invented packages.
+- `import/no-cycle`, `import/no-self-import`, `import/no-duplicates`.
+- `consistent-type-imports` — keeps type/value imports separated; matters for transpile correctness and tree-shaking.
+- `no-restricted-imports` — pin the agent away from `lodash`/`moment`/`axios` picks when the project has a chosen stack; disallow deep `../../../` relative paths.
 
 ### Tier 3 — Agent-specific traps
-- `no-console`, `no-debugger`, `no-alert` — agents leave debug prints.
-- `no-empty-function` — catches stubbed-out handlers agents forgot to finish.
+- `no-console`, `no-debugger`, `no-alert` — debug leftovers.
+- `no-empty-function` — stubbed handlers the agent forgot to finish.
 - `no-restricted-properties` for `process.env` — force config injection at boundaries.
-- `eslint-comments/require-description` + `no-unlimited-disable` + `no-unused-disable` — agents *will* suppress warnings if you let them. Require justification.
+- `eslint-comments/require-description` + `no-unlimited-disable` + `no-unused-disable` — if the agent suppresses a rule, require a reason. Otherwise suppression becomes the path of least resistance.
 
 ### Tier 4 — Complexity (cognitive, not line count)
-- `sonarjs/cognitive-complexity: 15` — the signal that actually matters.
-- `complexity`, `max-depth`, `max-nested-callbacks`, `max-params: 4` — all `warn`, not `error`; utilities legitimately need 3–4 params.
-- **No `max-lines` / `max-lines-per-function`.** Arbitrary line caps cause the opposite failure mode: over-extraction into incoherent single-use helpers. Measure cognition, not length.
+- `sonarjs/cognitive-complexity: 15` — the signal that actually correlates with "hard to read."
+- `complexity`, `max-depth`, `max-nested-callbacks`, `max-params: 4` — all `warn`, not `error`. Utilities legitimately need 3–4 params.
+- **No `max-lines` or `max-lines-per-function`.** Line caps punish coherent long code (reducers, parsers, JSX-heavy components) and reward fragmentation — the agent satisfies the cap by splitting into single-use helpers that only make sense read together. Cognitive complexity measures the thing you actually care about.
 
 ### Tier 5 — Security
-`security/detect-unsafe-regex`, `detect-eval-with-expression`, `detect-object-injection`, plus `no-eval`/`no-implied-eval`/`no-new-func`. Cheap, high leverage.
+Cheap, high leverage.
+- `security/detect-unsafe-regex`, `detect-eval-with-expression`, `detect-object-injection`, `detect-non-literal-regexp`, `detect-child-process`.
+- `no-eval`, `no-implied-eval`, `no-new-func`.
 
 ### Tier 6 — Style (lean)
-Only semantic choices, not layout. Prettier/Biome handles formatting.
-- `consistent-type-definitions: type`, `array-type: array-simple`
-- `prefer-nullish-coalescing`, `prefer-optional-chain`, `prefer-readonly`
-- `prefer-const`, `no-var`, `object-shorthand`, `prefer-template`
+Semantic choices only. Prettier/Biome handles layout.
+- `consistent-type-definitions: type`, `array-type: array-simple`.
+- `prefer-nullish-coalescing`, `prefer-optional-chain`, `prefer-readonly`.
+- `prefer-const`, `no-var`, `object-shorthand`, `prefer-template`.
 
-## Explicitly rejected
+## Deliberately excluded
+
+Some rules circulate as "AI guardrails" but produce more noise than signal on real codebases:
 
 | Rule | Why not |
 |---|---|
-| `no-comments/disallowComments` | *Why*-comments (constraints, invariants, workaround rationale) are valuable. Ban low-signal *what*-comments in review instead. |
-| `max-lines: 250` | Forces artificial module splits of coherent concepts. |
-| `max-lines-per-function: 50` | Encourages over-extraction into single-use helpers. Use cognitive complexity. |
-| `better-max-params: 2` | Too tight for `clamp(x, min, max)`-shaped utilities. 4 is defensible. |
-| `no-magic-numbers` | Noisy (HTTP codes, dates, math constants). Enable per-directory if at all. |
+| Ban all comments | *Why*-comments (constraints, invariants, workaround rationale) are load-bearing. Ban low-signal *what*-comments in review, not in lint. |
+| `max-lines` / `max-lines-per-function` | Arbitrary line caps cause over-extraction into incoherent helpers. Use cognitive complexity. |
+| `max-params: 2` | Too tight for `clamp(x, min, max)`-shaped utilities. 4 is defensible. |
+| `no-magic-numbers` | Noisy (HTTP codes, dates, math constants, array indexes). Enable per-directory if at all. |
 | `id-length: { min: 2 }` | Breaks idiomatic `i`, `e`, `_`, `k`, `v`. |
-| Wholesale `eslint-plugin-unicorn` | Taste transplant dressed as guardrails. |
+| Wholesale `eslint-plugin-unicorn` | Many rules are taste (`no-null`, `prefer-node-protocol`, `no-array-reduce`); dropping it in wholesale is a style transplant, not a guardrail. |
+| Project-wide `no-console` as `off` | Agents leave `console.log` everywhere. Keep it `error` with `{ allow: ['warn', 'error'] }`. |
 
-## Enforcement (Tier 7 — where the leverage actually lives)
+## Tier 7 — Enforcement (where the leverage lives)
 
-Rules only matter if the agent sees failures. Wire them into the loop:
+Rules only shape agent behavior if the agent sees failures. Wire lint into the loop:
 
-1. **Pre-commit** — `lint-staged` + `husky` runs ESLint on staged files; commit blocks on error.
-2. **Post-edit hook** — `hooks/lint-on-edit.sh` runs `eslint --fix` + `tsc --noEmit` on files the agent just wrote. The agent reads the error output in the next turn and self-corrects. This is 10× more valuable than any specific rule.
-3. **CI as backstop, never primary gate** — by CI it's too late; the agent has moved on.
-4. **Type-aware rules on** (`parserOptions.projectService`). Half of Tier 1 only works with type info. Worth the lint slowdown.
+1. **Post-edit hook** (`hooks/lint-on-edit.sh`) — runs `eslint --fix` on the file the agent just wrote and returns errors on stderr with exit 2. The agent reads the errors in its next turn and self-corrects. This is where most of the value is; a perfect ruleset with no feedback loop is noise.
+2. **Pre-commit** — `lint-staged` + `husky`, commit blocks on error. Backstop against hook misconfiguration.
+3. **CI as last line only** — by CI the agent has moved on; the correction cost is high.
+4. **Type-aware linting on** (`parserOptions.projectService`) — half of Tier 1 requires type info. Worth the lint slowdown.
+
+A useful heuristic: if a rule fires and the agent suppresses it without fixing, the rule is miscalibrated. Tune the rule, don't tolerate the suppression.
 
 ## Install
 
@@ -73,4 +101,4 @@ npm i -D eslint typescript-eslint eslint-plugin-import \
   eslint-plugin-sonarjs eslint-plugin-security eslint-plugin-eslint-comments
 ```
 
-Then wire in the post-edit hook (see `hooks/lint-on-edit.sh` + `hooks/README.md`).
+Then wire in the post-edit hook: `hooks/lint-on-edit.sh` + settings in `hooks/README.md`.
