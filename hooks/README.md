@@ -55,6 +55,32 @@ chmod +x ~/.claude/hooks/*.sh
 - Skips non-code files (.md, .json, .yaml, etc.)
 - Suggests specific extraction targets (types, constants, validation, utils)
 
+### lint-on-edit.sh
+**Event:** PostToolUse (Write, Edit)
+**What it does:** Runs `eslint --fix --max-warnings 0` on any `.ts/.tsx/.js/.jsx/.mjs/.cjs` file Claude writes in a project with an ESLint config + local `eslint` binary.
+- **Exit 2** with the ESLint output on stderr if errors remain — Claude sees the errors and self-corrects on the next turn.
+- Auto-fixes what it can before blocking.
+- Opt-in `tsc --noEmit` per project: `touch .claude/enable-typecheck-on-edit` in the project root.
+- No-ops silently when no `package.json`, no ESLint config, or no `node_modules/.bin/eslint` is present.
+
+Pairs with `templates/eslint.config.mjs`. See `guides/lint-rules-for-ai.md` for the rule rationale.
+
+Add to `settings.json`:
+
+```json
+{
+  "matcher": "Write|Edit",
+  "hooks": [
+    {
+      "type": "command",
+      "command": "~/.claude/hooks/lint-on-edit.sh",
+      "timeout": 30,
+      "statusMessage": "Linting..."
+    }
+  ]
+}
+```
+
 ### check-codebase-health.sh
 **Event:** SessionStart
 **What it does:** On every new session, reports:

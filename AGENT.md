@@ -85,13 +85,29 @@ coverage/
 <!-- Add setup instructions here -->
 ```
 
-### 4. Install hooks (if selected)
+### 4. Install ESLint config (TypeScript/JavaScript projects only)
+
+Reference: `guides/lint-rules-for-ai.md`
+
+If the project's tech stack is TypeScript or JavaScript, copy the ruleset and install its dependencies:
+
+```bash
+cp <repo-path>/templates/eslint.config.mjs <project-name>/eslint.config.mjs
+cd <project-name>
+npm i -D eslint typescript-eslint eslint-plugin-import \
+  eslint-plugin-sonarjs eslint-plugin-security eslint-plugin-eslint-comments
+```
+
+Skip this step for non-JS/TS stacks (Python, Rust, Go, etc.).
+
+### 5. Install hooks (if selected)
 
 ```bash
 mkdir -p ~/.claude/hooks
 cp <repo-path>/hooks/check-file-size.sh ~/.claude/hooks/
 cp <repo-path>/hooks/check-codebase-health.sh ~/.claude/hooks/
-chmod +x ~/.claude/hooks/check-file-size.sh ~/.claude/hooks/check-codebase-health.sh
+cp <repo-path>/hooks/lint-on-edit.sh ~/.claude/hooks/
+chmod +x ~/.claude/hooks/check-file-size.sh ~/.claude/hooks/check-codebase-health.sh ~/.claude/hooks/lint-on-edit.sh
 ```
 
 Merge this into `~/.claude/settings.json`. Read the existing file first, then append to the `hooks.PostToolUse` and `hooks.SessionStart` arrays — do not replace existing entries. If the hook command already appears verbatim, skip it:
@@ -108,6 +124,17 @@ Merge this into `~/.claude/settings.json`. Read the existing file first, then ap
             "command": "~/.claude/hooks/check-file-size.sh",
             "timeout": 5,
             "statusMessage": "Checking file size..."
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/lint-on-edit.sh",
+            "timeout": 30,
+            "statusMessage": "Linting..."
           }
         ]
       }
@@ -130,7 +157,7 @@ Merge this into `~/.claude/settings.json`. Read the existing file first, then ap
 
 Reference: `hooks/README.md` for full hook documentation.
 
-### 5. Install skills (if selected)
+### 6. Install skills (if selected)
 
 ```bash
 mkdir -p ~/.claude/skills
@@ -143,7 +170,7 @@ cp -r <repo-path>/skills/dream ~/.claude/skills/
 cp -r <repo-path>/skills/new-project ~/.claude/skills/
 ```
 
-### 6. Initialize git and first commit
+### 7. Initialize git and first commit
 
 ```bash
 cd <project-name>
@@ -164,6 +191,7 @@ Confirm each item before reporting done:
 - [ ] Project directory with feature-based structure (`src/features`, `src/services`, `src/utils`, `src/types`, `src/constants`, `src/schemas`, `src/entrypoints`, `src/migrations`, `tests/`, `docs/`, `scripts/`)
 - [ ] `CLAUDE.md` present with project name and description filled in
 - [ ] `.gitignore`, `.env.example`, and `README.md` present
+- [ ] `eslint.config.mjs` copied + lint deps installed (TS/JS stacks only)
 - [ ] Hooks installed to `~/.claude/hooks/` and configured in `settings.json` (if selected)
 - [ ] Skills installed to `~/.claude/skills/` (if selected)
 - [ ] Initial git commit created
