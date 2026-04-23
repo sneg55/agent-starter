@@ -1,6 +1,15 @@
 # Lint Rules for AI-Driven Codebases
 
-Drop `templates/eslint.config.mjs` into any TypeScript project scaffolded from this repo. This doc explains **why** those rules and not others.
+Drop `templates/biome.json` and `templates/eslint.config.mjs` into any TypeScript project scaffolded from this repo. Biome runs first (format + fast syntactic rules, with autofix); ESLint runs second (type-aware + plugin-specific rules). This doc explains **why** those rules and not others, and **which tool owns which rule**.
+
+## Biome vs ESLint split
+
+Biome is 10-100× faster than ESLint but can't do type-aware analysis or match ESLint's plugin ecosystem. The split:
+
+- **Biome owns:** formatting, `noUnusedVariables`, `noUnreachable`, `noConstantCondition`, `noSelfCompare`, `useStrictEquality`, `useThrowOnlyError`, `noEmptyBlockStatements`, `noConsole`, `noDebugger`, `useConst`, `noVar`, `useTemplate`, `useShorthandPropertyAssignment`, `useConsistentArrayType`, `useConsistentTypeDefinitions`, `useImportType`, `useOptionalChain`, `noDuplicateImports`, `noRestrictedImports` (package names), `noExplicitAny`, `noNonNullAssertion`, `noGlobalEval`. Roughly Tier 1 non-type-aware + Tier 3 debug leftovers + Tier 6 style.
+- **ESLint owns:** the rules below. All of them need either TypeScript type info or plugin logic Biome doesn't ship. These are the highest-value AI guardrails.
+
+The post-edit hook (`hooks/lint-on-edit.sh`) runs `biome check --write` then `eslint --fix` and pipes errors from either back to the agent.
 
 ## Principle
 
@@ -95,10 +104,11 @@ A useful heuristic: if a rule fires and the agent suppresses it without fixing, 
 ## Install
 
 ```bash
+cp <repo>/templates/biome.json <project>/biome.json
 cp <repo>/templates/eslint.config.mjs <project>/eslint.config.mjs
 cd <project>
-npm i -D eslint typescript-eslint eslint-plugin-import \
+npm i -D @biomejs/biome eslint typescript-eslint eslint-plugin-import \
   eslint-plugin-sonarjs eslint-plugin-security eslint-plugin-eslint-comments
 ```
 
-Then wire in the post-edit hook: `hooks/lint-on-edit.sh` + settings in `hooks/README.md`.
+Then wire in the post-edit hook: `hooks/lint-on-edit.sh` + settings in `hooks/README.md`. The hook runs Biome first (fast, autofix), then ESLint (type-aware).

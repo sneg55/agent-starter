@@ -1,0 +1,108 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
+  "//": "Biome config for AI-agent-driven TypeScript codebases. Pairs with eslint.config.mjs — Biome handles fast syntactic rules + formatting; ESLint keeps type-aware and plugin-specific rules. Rationale in guides/lint-rules-for-ai.md.",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignore": ["dist/**", "build/**", "coverage/**", "node_modules/**"]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "asNeeded",
+      "trailingCommas": "all"
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": false,
+      "correctness": {
+        "noUnusedVariables": {
+          "level": "error",
+          "options": { "ignoreRestSiblings": true }
+        },
+        "noUnusedPrivateClassMembers": "error",
+        "noUnreachable": "error",
+        "noConstantCondition": "error",
+        "noConstantMathMinMaxClamp": "error",
+        "noSelfCompare": "error",
+        "noInvalidUseBeforeDeclaration": "error"
+      },
+      "suspicious": {
+        "noExplicitAny": "error",
+        "noDebugger": "error",
+        "noConsole": {
+          "level": "error",
+          "options": { "allow": ["warn", "error"] }
+        },
+        "noEmptyBlockStatements": "error",
+        "noDoubleEquals": "error",
+        "noSelfCompare": "error",
+        "noDuplicateObjectKeys": "error",
+        "noDuplicateParameters": "error",
+        "noFallthroughSwitchClause": "error"
+      },
+      "style": {
+        "useConst": "error",
+        "noVar": "error",
+        "useTemplate": "error",
+        "useShorthandAssign": "error",
+        "useShorthandPropertyAssignment": "error",
+        "useConsistentArrayType": {
+          "level": "error",
+          "options": { "syntax": "shorthand" }
+        },
+        "useConsistentBuiltinInstantiation": "error",
+        "useImportType": "error",
+        "useExportType": "error",
+        "useNodejsImportProtocol": "error",
+        "useThrowOnlyError": "error",
+        "noNonNullAssertion": "error",
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "paths": {
+              "lodash": "Use native JS or lodash-es.",
+              "moment": "Use date-fns or Temporal.",
+              "axios": "Use fetch."
+            }
+          }
+        }
+      },
+      "complexity": {
+        "useOptionalChain": "error",
+        "noUselessTypeConstraint": "error",
+        "noUselessConstructor": "error",
+        "noUselessRename": "error",
+        "noUselessTernary": "error",
+        "noBannedTypes": "error"
+      },
+      "security": {
+        "noGlobalEval": "error"
+      },
+      "performance": {
+        "noDelete": "error"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "include": ["**/*.{test,spec}.{ts,tsx}", "tests/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "style": { "noNonNullAssertion": "off" }
+        }
+      }
+    }
+  ]
+}

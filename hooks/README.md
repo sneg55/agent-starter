@@ -57,13 +57,13 @@ chmod +x ~/.claude/hooks/*.sh
 
 ### lint-on-edit.sh
 **Event:** PostToolUse (Write, Edit)
-**What it does:** Runs `eslint --fix --max-warnings 0` on any `.ts/.tsx/.js/.jsx/.mjs/.cjs` file Claude writes in a project with an ESLint config + local `eslint` binary.
-- **Exit 2** with the ESLint output on stderr if errors remain — Claude sees the errors and self-corrects on the next turn.
-- Auto-fixes what it can before blocking.
+**What it does:** Runs Biome (`biome check --write`) then ESLint (`eslint --fix --max-warnings 0`) on any `.ts/.tsx/.js/.jsx/.mjs/.cjs` file Claude writes. Each tool runs only if its config + local binary are present.
+- **Exit 2** with the tool output on stderr if errors remain — Claude sees the errors and self-corrects on the next turn.
+- Biome handles format + fast syntactic rules with autofix; ESLint handles type-aware + plugin rules (import resolution, sonarjs, security).
 - Opt-in `tsc --noEmit` per project: `touch .claude/enable-typecheck-on-edit` in the project root.
-- No-ops silently when no `package.json`, no ESLint config, or no `node_modules/.bin/eslint` is present.
+- No-ops silently when no `package.json` is present or when neither tool is installed.
 
-Pairs with `templates/eslint.config.mjs`. See `guides/lint-rules-for-ai.md` for the rule rationale.
+Pairs with `templates/biome.json` + `templates/eslint.config.mjs`. See `guides/lint-rules-for-ai.md` for the rule rationale and split.
 
 Add to `settings.json`:
 

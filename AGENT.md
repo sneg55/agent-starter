@@ -85,16 +85,17 @@ coverage/
 <!-- Add setup instructions here -->
 ```
 
-### 4. Install ESLint config (TypeScript/JavaScript projects only)
+### 4. Install Biome + ESLint configs (TypeScript/JavaScript projects only)
 
 Reference: `guides/lint-rules-for-ai.md`
 
-If the project's tech stack is TypeScript or JavaScript, copy the ruleset and install its dependencies:
+If the project's tech stack is TypeScript or JavaScript, copy both configs and install their dependencies. Biome handles formatting + fast syntactic rules; ESLint handles type-aware + plugin rules.
 
 ```bash
+cp <repo-path>/templates/biome.json <project-name>/biome.json
 cp <repo-path>/templates/eslint.config.mjs <project-name>/eslint.config.mjs
 cd <project-name>
-npm i -D eslint typescript-eslint eslint-plugin-import \
+npm i -D @biomejs/biome eslint typescript-eslint eslint-plugin-import \
   eslint-plugin-sonarjs eslint-plugin-security eslint-plugin-eslint-comments
 ```
 
@@ -191,7 +192,7 @@ Confirm each item before reporting done:
 - [ ] Project directory with feature-based structure (`src/features`, `src/services`, `src/utils`, `src/types`, `src/constants`, `src/schemas`, `src/entrypoints`, `src/migrations`, `tests/`, `docs/`, `scripts/`)
 - [ ] `CLAUDE.md` present with project name and description filled in
 - [ ] `.gitignore`, `.env.example`, and `README.md` present
-- [ ] `eslint.config.mjs` copied + lint deps installed (TS/JS stacks only)
+- [ ] `biome.json` + `eslint.config.mjs` copied + lint deps installed (TS/JS stacks only)
 - [ ] Hooks installed to `~/.claude/hooks/` and configured in `settings.json` (if selected)
 - [ ] Skills installed to `~/.claude/skills/` (if selected)
 - [ ] Initial git commit created

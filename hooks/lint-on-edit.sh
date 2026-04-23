@@ -3,8 +3,9 @@
 # PostToolUse on Write|Edit — exit 2 to block with stderr, exit 0 to pass.
 #
 # Philosophy: rules only shape agent behavior if the agent sees failures.
-# This hook runs eslint --fix and tsc --noEmit on the touched file so the
-# agent gets structured errors back in its next turn and self-corrects.
+# This hook runs Biome (format + fast rules, with --write), then ESLint
+# (type-aware + plugin rules), then optionally tsc --noEmit. The agent
+# gets structured errors back in its next turn and self-corrects.
 #
 # Install: copy to ~/.claude/hooks/ and add to settings.json (see README).
 
@@ -46,12 +47,28 @@ for cfg in eslint.config.mjs eslint.config.js eslint.config.cjs .eslintrc .eslin
   if [ -f "$cfg" ]; then HAS_ESLINT_CONFIG=1; break; fi
 done
 
+HAS_BIOME_CONFIG=0
+for cfg in biome.json biome.jsonc; do
+  if [ -f "$cfg" ]; then HAS_BIOME_CONFIG=1; break; fi
+done
+
 HAS_TSCONFIG=0
 [ -f tsconfig.json ] && HAS_TSCONFIG=1
 
 FAIL=0
 OUT=""
 
+# Biome first: fast, autofixes formatting + syntactic rules.
+if [ "$HAS_BIOME_CONFIG" -eq 1 ] && [ -x node_modules/.bin/biome ]; then
+  if ! BIOME_OUT=$(node_modules/.bin/biome check --write --no-errors-on-unmatched "$FILE_PATH" 2>&1); then
+    OUT="${OUT}Biome errors in ${FILE_PATH}:
+${BIOME_OUT}
+"
+    FAIL=1
+  fi
+fi
+
+# ESLint second: type-aware + plugin rules (import resolution, sonarjs, security).
 if [ "$HAS_ESLINT_CONFIG" -eq 1 ] && [ -x node_modules/.bin/eslint ]; then
   if ! LINT_OUT=$(node_modules/.bin/eslint --fix --max-warnings 0 "$FILE_PATH" 2>&1); then
     OUT="${OUT}ESLint errors in ${FILE_PATH}:
