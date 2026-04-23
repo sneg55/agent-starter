@@ -25,6 +25,21 @@ Tiered Biome + ESLint ruleset tuned for AI-agent-driven TypeScript codebases. Bl
 ### `guides/hooks-reference.md`
 Complete reference for Claude Code's hook system — all 4 hook types, all 27 events, exit code behavior, configuration format, and 10 practical examples (auto-lint, block dangerous commands, agent verification, security review, Slack notifications, and more).
 
+### `guides/tool-authoring-pattern.md`
+The `BashTool/`-style directory-per-tool layout extracted from Claude Code's own source. Each tool is a handful of single-purpose files (`toolName.ts`, `schema.ts`, `prompt.ts`, `validation.ts`, `permissions.ts`, `security.ts`, `execute.ts`, `result.ts`). Gives an agent a predictable place to look when editing any tool and breaks whole classes of import cycles.
+
+### `guides/error-id-registry.md`
+Every thrown error carries a stable ID (`E_CFG_003`) from a central registry. Logs, telemetry, docs, and agents all reference the same ID, so error-message rewordings don't break grep or alerting. Pairs with `templates/errorIds.ts`.
+
+### `guides/discriminated-union-results.md`
+`Result<Ok, Err>` as the one shape every fallible function returns. Exhaustiveness-checked via the compiler; no ad-hoc `{success, data}` / `{ok: 1}` drift across edits. Reserves throws for programmer errors only.
+
+### `guides/abort-signal-threading.md`
+Thread `AbortSignal` through every long-running call so Ctrl+C, timeouts, and obsoleted work actually stop. Covers the canonical entry-point shape, `AbortSignal.any` for composed timeouts, the `AbortError` swallow anti-pattern, and an ESLint rule idea for bare `fetch()`.
+
+### `guides/prompt-caching.md`
+How to structure prompts so Anthropic's prefix cache hits 80%+. Canonical order (system → tools → stable context → history → user turn), the cache breakpoint layout, silent cache-breakers (timestamps, unstable JSON key order, per-user strings in the prefix), and TTL-aware polling intervals.
+
 ## Templates
 
 ### `templates/NEW_PROJECT_PROMPT.md`
@@ -35,6 +50,12 @@ Drop-in Biome + ESLint configs tuned for AI-agent TypeScript projects. Biome own
 
 ### `templates/CLAUDE.md`
 Drop-in project instructions template with the full 4-type memory taxonomy (user, feedback, project, reference), memory file format, consolidation workflow, recall guidelines, and git safety rules.
+
+### `templates/errorIds.ts`
+Central error ID registry + `AppError` class. Every throw site references a stable `E_DOMAIN_NNN` ID that stays searchable even as messages get rewritten. Pairs with `guides/error-id-registry.md`.
+
+### `templates/truncate-for-context.ts`
+Head-plus-tail truncator for tool output. Keeps the first N lines and last M lines, replaces the middle with `[... X lines elided ...]`. Pipe every tool result through this so `cat large.log` and `npm test` don't blow the context window.
 
 **Usage:**
 ```bash

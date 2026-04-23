@@ -70,7 +70,7 @@ fi
 
 # ESLint second: type-aware + plugin rules (import resolution, sonarjs, security).
 if [ "$HAS_ESLINT_CONFIG" -eq 1 ] && [ -x node_modules/.bin/eslint ]; then
-  if ! LINT_OUT=$(node_modules/.bin/eslint --fix --max-warnings 0 "$FILE_PATH" 2>&1); then
+  if ! LINT_OUT=$(node_modules/.bin/eslint --fix --cache --cache-location node_modules/.cache/eslint/ --max-warnings 0 "$FILE_PATH" 2>&1); then
     OUT="${OUT}ESLint errors in ${FILE_PATH}:
 ${LINT_OUT}
 "

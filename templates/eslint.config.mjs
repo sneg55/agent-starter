@@ -87,6 +87,17 @@ export default tseslint.config(
       'eslint-comments/no-unlimited-disable': 'error',
       'eslint-comments/no-unused-disable': 'error',
 
+      // Discriminated-union Result pattern — see guides/discriminated-union-results.md
+      // and guides/error-id-registry.md. Raw `throw new Error(...)` short-circuits
+      // both: it hides failure modes from the signature and skips the error ID.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'ThrowStatement > NewExpression[callee.name="Error"]',
+          message: 'Return Result<T, AppError> instead of throwing raw Error. Use AppError(ErrorIds.X, ...) for programmer errors. See guides/error-id-registry.md.',
+        },
+      ],
+
       // ── Tier 4: Complexity (sonarjs — Biome has noExcessiveCognitiveComplexity
       //    but sonarjs's heuristics are more mature) ─────────────────────────
       'sonarjs/cognitive-complexity': ['error', 15],
@@ -124,6 +135,7 @@ export default tseslint.config(
       'sonarjs/no-duplicate-string': 'off',
       'max-nested-callbacks': 'off',
       'no-restricted-properties': 'off',
+      'no-restricted-syntax': 'off',
     },
   },
 )

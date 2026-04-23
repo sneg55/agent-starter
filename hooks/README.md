@@ -89,6 +89,38 @@ Add to `settings.json`:
 - Lists any files over 500 lines that need splitting
 - Only outputs when there are issues (silent when healthy)
 
+### track-reads.sh + require-read-before-edit.sh
+**Events:** PostToolUse (Read) + PreToolUse (Edit, Write)
+**What they do together:** Force a Read before every Edit/Write in a session. `track-reads.sh` logs every Read to `$CLAUDE_SESSION_DIR/read-files.txt`; `require-read-before-edit.sh` blocks any Edit/Write to an existing file that isn't in that log.
+
+- **Why:** LLMs routinely edit files from memory rather than current contents. This catches hallucinated edits before they corrupt files.
+- **Exempt paths:** add globs to `.claude/read-before-edit-exempt` (one per line).
+- **Escape hatch:** set `CLAUDE_SKIP_READ_CHECK=1` to disable.
+- **Install both** — the pre-hook fails open with a warning if the post-hook isn't logging.
+
+Add to `settings.json`:
+
+```json
+{
+  "PostToolUse": [
+    { "matcher": "Read",
+      "hooks": [{ "type": "command", "command": "~/.claude/hooks/track-reads.sh", "timeout": 3 }] }
+  ],
+  "PreToolUse": [
+    { "matcher": "Edit|Write",
+      "hooks": [{ "type": "command", "command": "~/.claude/hooks/require-read-before-edit.sh", "timeout": 3 }] }
+  ]
+}
+```
+
+### check-silent-errors.sh
+**Event:** PostToolUse (Write, Edit)
+**What it does:** Blocks writes that introduce silent error handling. Catches bare `except:`, `except: pass`, `except: ...`, empty `catch {}`, and `catch` blocks whose only body is `console.log`.
+
+- **Exit 2** with specific line numbers on stderr so Claude can fix and retry.
+- Exempt a single site with an inline comment: `// silent-ok` (JS/TS) or `# silent-ok` (Python).
+- Pairs with the guidance in `guides/hooks-reference.md` § "Block silent error patterns".
+
 ## Exit Code Behavior
 - **Exit 0** — success, proceed normally
 - **Exit 2** — BLOCK the action, stderr shown to Claude as error

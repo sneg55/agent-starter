@@ -105,11 +105,16 @@ Skip this step for non-JS/TS stacks (Python, Rust, Go, etc.).
 
 ```bash
 mkdir -p ~/.claude/hooks
-cp <repo-path>/hooks/check-file-size.sh ~/.claude/hooks/
-cp <repo-path>/hooks/check-codebase-health.sh ~/.claude/hooks/
-cp <repo-path>/hooks/lint-on-edit.sh ~/.claude/hooks/
-chmod +x ~/.claude/hooks/check-file-size.sh ~/.claude/hooks/check-codebase-health.sh ~/.claude/hooks/lint-on-edit.sh
+cp <repo-path>/hooks/*.sh ~/.claude/hooks/
+chmod +x ~/.claude/hooks/*.sh
 ```
+
+Available hooks:
+- `check-file-size.sh` — block files >300 lines (PostToolUse:Write)
+- `check-codebase-health.sh` — session-start health report (SessionStart)
+- `lint-on-edit.sh` — Biome + ESLint on save (PostToolUse:Write|Edit)
+- `track-reads.sh` + `require-read-before-edit.sh` — force Read before Edit (PostToolUse:Read, PreToolUse:Edit|Write)
+- `check-silent-errors.sh` — block swallowed exceptions (PostToolUse:Write|Edit)
 
 Merge this into `~/.claude/settings.json`. Read the existing file first, then append to the `hooks.PostToolUse` and `hooks.SessionStart` arrays — do not replace existing entries. If the hook command already appears verbatim, skip it:
 
