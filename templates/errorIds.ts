@@ -29,6 +29,7 @@ export const ErrorIds = {
   NET_TLS: 'E_NET_003',
   NET_RATE_LIMITED: 'E_NET_004',
   NET_UNAVAILABLE: 'E_NET_005',
+  NET_BAD_SHAPE: 'E_NET_006',
 
   // ── Tool execution (TOOL) ────────────────────────────────────────────────
   TOOL_ABORTED: 'E_TOOL_001',

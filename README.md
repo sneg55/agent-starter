@@ -40,6 +40,9 @@ Thread `AbortSignal` through every long-running call so Ctrl+C, timeouts, and ob
 ### `guides/prompt-caching.md`
 How to structure prompts so Anthropic's prefix cache hits 80%+. Canonical order (system → tools → stable context → history → user turn), the cache breakpoint layout, silent cache-breakers (timestamps, unstable JSON key order, per-user strings in the prefix), and TTL-aware polling intervals.
 
+### `guides/zod-at-the-boundary.md`
+Validate external data the moment it enters your program; never re-check inside. The schema is the source of truth for the type (`type T = z.infer<typeof schema>`). Covers env vars, config files, HTTP responses, and LLM output. Pairs with `templates/env.ts`.
+
 ## Templates
 
 ### `templates/NEW_PROJECT_PROMPT.md`
@@ -56,6 +59,9 @@ Central error ID registry + `AppError` class. Every throw site references a stab
 
 ### `templates/truncate-for-context.ts`
 Head-plus-tail truncator for tool output. Keeps the first N lines and last M lines, replaces the middle with `[... X lines elided ...]`. Pipe every tool result through this so `cat large.log` and `npm test` don't blow the context window.
+
+### `templates/env.ts`
+Single env-var boundary. All `process.env` reads happen here and nowhere else (the ESLint config enforces this). Zod schema is the source of truth for the `Env` type; invalid env fails loudly at startup with the exact field and reason. Pairs with `guides/zod-at-the-boundary.md`.
 
 **Usage:**
 ```bash
