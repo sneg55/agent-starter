@@ -136,6 +136,17 @@ Periodically review and consolidate memories:
 - Never commit secrets
 - Use heredoc syntax for multi-line commit messages
 
+## Implementation Notes
+
+While working a multi-step task against a spec, maintain a running `<spec>-implementation-notes.md` in the same folder as the spec (where `<spec>` is the spec file's base name). Capture anything the developer should know about how the implementation diverges from or interprets the spec:
+
+- **Design decisions** — choices you made where the spec was ambiguous
+- **Deviations** — places where you intentionally departed from the spec, and why
+- **Tradeoffs** — alternatives you considered and why you picked what you did
+- **Open questions** — anything you'd want the developer to confirm or revise
+
+Append entries as decisions come up — don't reconstruct them at the end. Keep each entry short. This is a working document scoped to the task, not permanent docs: once the developer has reviewed it and the work is merged, the file can be deleted or archived.
+
 ## Project-Specific Instructions
 
 <!-- Add your project-specific instructions below -->
