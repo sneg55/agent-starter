@@ -34,10 +34,14 @@ $(cat /tmp/silerr.$$)
     fi
     # except/pass, except/continue, except/... — heuristic two-line scan.
     # POSIX classes only — BSD/one-true awk doesn't grok \s or \b.
+    # Exempt via '# silent-ok' on either the except or the body line.
     if awk '
-      /^[[:space:]]*except([[:space:]]|:|$)/ { e=NR; next }
-      e && NR==e+1 && /^[[:space:]]*(pass|continue|\.\.\.)[[:space:]]*$/ { print e":"prev_line; print NR":"$0 }
-      { prev_line=$0; e=0 }
+      /^[[:space:]]*except([[:space:]]|:|$)/ { e=NR; eline=$0; next }
+      e && NR==e+1 && /^[[:space:]]*(pass|continue|\.\.\.)[[:space:]]*$/ {
+        if (eline !~ /silent-ok/ && $0 !~ /silent-ok/) { print e":"eline; print NR":"$0 }
+        e=0; next
+      }
+      { e=0 }
     ' "$FILE_PATH" > /tmp/silerr.$$ 2>/dev/null && [ -s /tmp/silerr.$$ ]; then
       VIOLATIONS="${VIOLATIONS}  except/pass or except/continue or except/...:
 $(cat /tmp/silerr.$$)
@@ -54,11 +58,14 @@ $(cat /tmp/silerr.$$)
     fi
     # catch block whose next non-empty line is only console.log(...)
     # POSIX classes only — BSD/one-true awk doesn't grok \s or \S.
+    # Exempt via '// silent-ok' on either the catch or the console.log line.
     if awk '
-      /catch[[:space:]]*(\([^)]*\))?[[:space:]]*\{/ { c=NR; next }
-      c && /^[[:space:]]*console\.log\(/ { print c":"prev_line; print NR":"$0; c=0 }
+      /catch[[:space:]]*(\([^)]*\))?[[:space:]]*\{/ { c=NR; cline=$0; next }
+      c && /^[[:space:]]*console\.log\(/ {
+        if (cline !~ /silent-ok/ && $0 !~ /silent-ok/) { print c":"cline; print NR":"$0 }
+        c=0; next
+      }
       c && /^[[:space:]]*[^[:space:]]/ { c=0 }
-      { prev_line=$0 }
     ' "$FILE_PATH" > /tmp/silerr.$$ 2>/dev/null && [ -s /tmp/silerr.$$ ]; then
       VIOLATIONS="${VIOLATIONS}  catch with only console.log (use console.error):
 $(cat /tmp/silerr.$$)
