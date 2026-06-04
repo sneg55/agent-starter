@@ -26,8 +26,8 @@ VIOLATIONS=""
 
 case "$FILE_PATH" in
   *.py)
-    # Bare `except:` (no type).
-    if grep -nP '^\s*except\s*:' "$FILE_PATH" | grep -v 'silent-ok' > /tmp/silerr.$$ 2>/dev/null && [ -s /tmp/silerr.$$ ]; then
+    # Bare `except:` (no type). Portable ERE — BSD grep has no -P (PCRE).
+    if grep -nE '^[[:space:]]*except[[:space:]]*:' "$FILE_PATH" | grep -v 'silent-ok' > /tmp/silerr.$$ 2>/dev/null && [ -s /tmp/silerr.$$ ]; then
       VIOLATIONS="${VIOLATIONS}  Bare except:
 $(cat /tmp/silerr.$$)
 "
@@ -45,8 +45,8 @@ $(cat /tmp/silerr.$$)
     rm -f /tmp/silerr.$$
     ;;
   *.ts|*.tsx|*.js|*.jsx|*.mjs|*.cjs)
-    # Empty catch block: catch {} or catch (e) {}
-    if grep -nP 'catch\s*(\([^)]*\))?\s*\{\s*\}' "$FILE_PATH" | grep -v 'silent-ok' > /tmp/silerr.$$ 2>/dev/null && [ -s /tmp/silerr.$$ ]; then
+    # Empty catch block: catch {} or catch (e) {}. Portable ERE — no -P on BSD grep.
+    if grep -nE 'catch[[:space:]]*(\([^)]*\))?[[:space:]]*\{[[:space:]]*\}' "$FILE_PATH" | grep -v 'silent-ok' > /tmp/silerr.$$ 2>/dev/null && [ -s /tmp/silerr.$$ ]; then
       VIOLATIONS="${VIOLATIONS}  Empty catch block:
 $(cat /tmp/silerr.$$)
 "
