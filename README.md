@@ -4,7 +4,11 @@ Anthropic's own engineering patterns, extracted from the Claude Code CLI source 
 
 ## Usage
 
-Point an AI agent at this repo and say **"read this repo and set up my project"** — the agent reads `AGENT.md` and scaffolds a complete project interactively.
+Point an AI agent at this repo and say **"read this repo and set up my project"** — the agent reads `AGENT.md` and scaffolds a complete project interactively:
+
+```
+read this repo and set up my project https://github.com/sneg55/agent-starter/
+```
 
 Or install the `/new-project` skill once and run it in any session:
 
