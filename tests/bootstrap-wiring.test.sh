@@ -17,4 +17,7 @@ check "skills/new-project/SKILL.md" "reflect" "new-project installs reflect skil
 check "templates/CLAUDE.md" "Self-improvement loop" "CLAUDE template documents the loop"
 check "templates/CLAUDE.md" ".harness/ledger.jsonl" "CLAUDE template names the ledger"
 
+check "hooks/README.md" "Self-improvement ledger" "README documents the ledger section"
+check "hooks/README.md" "log-event.sh" "README documents the log-event helper"
+
 exit $ASSERT_FAILED
