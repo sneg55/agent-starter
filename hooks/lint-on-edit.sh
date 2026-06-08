@@ -97,6 +97,7 @@ fi
 
 if [ "$FAIL" -eq 1 ]; then
   printf '%s' "$OUT" >&2
+  [ -x "$(dirname "$0")/lib/log-event.sh" ] && "$(dirname "$0")/lib/log-event.sh" lint block "$FILE_PATH" "lint or typecheck failed"
   exit 2
 fi
 

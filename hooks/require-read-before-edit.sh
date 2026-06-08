@@ -74,6 +74,7 @@ contradict its current contents. Read the file first, then retry the edit.
 To exempt a path, add a glob to .claude/read-before-edit-exempt
 (one per line). To disable entirely, set CLAUDE_SKIP_READ_CHECK=1.
 EOF
+  [ -x "$(dirname "$0")/lib/log-event.sh" ] && "$(dirname "$0")/lib/log-event.sh" read-before-edit block "$FILE_PATH" "edit without prior read"
   exit 2
 fi
 
