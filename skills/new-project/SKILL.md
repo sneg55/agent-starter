@@ -237,10 +237,10 @@ coverage/
 ### 4. Install hooks (if selected)
 
 ```bash
-mkdir -p ~/.claude/hooks
-cp <repo-path>/hooks/check-file-size.sh ~/.claude/hooks/
-cp <repo-path>/hooks/check-codebase-health.sh ~/.claude/hooks/
-chmod +x ~/.claude/hooks/check-file-size.sh ~/.claude/hooks/check-codebase-health.sh
+mkdir -p ~/.claude/hooks/lib
+cp <repo-path>/hooks/*.sh ~/.claude/hooks/
+cp <repo-path>/hooks/lib/*.sh ~/.claude/hooks/lib/
+chmod +x ~/.claude/hooks/*.sh ~/.claude/hooks/lib/*.sh
 ```
 
 Merge into `~/.claude/settings.json`. Read the existing file first, then append to the `hooks.PostToolUse` and `hooks.SessionStart` arrays — do not replace existing entries. If the hook command already appears verbatim, skip it:
@@ -292,6 +292,7 @@ cp -r <repo-path>/skills/remember ~/.claude/skills/
 cp -r <repo-path>/skills/dream ~/.claude/skills/
 # new-project skill is included in this repo at skills/new-project/
 cp -r <repo-path>/skills/new-project ~/.claude/skills/
+cp -r <repo-path>/skills/reflect ~/.claude/skills/
 ```
 
 Installed skills:
@@ -301,8 +302,23 @@ Installed skills:
 - `/remember` — review auto-memory and promote to CLAUDE.md or CLAUDE.local.md
 - `/dream` — memory consolidation: merge, prune, re-index memory files
 - `/new-project` — this skill (bootstrap a new project)
+- `/reflect` — read ledger, cluster recurring mistakes, propose improvements
 
-### 6. Initialize git and first commit
+### 6. Initialize the self-improvement ledger
+
+```bash
+mkdir -p <project-name>/.harness/reflections
+touch <project-name>/.harness/reflections/.gitkeep
+echo '.harness/ledger.jsonl' >> <project-name>/.gitignore
+```
+
+The enforcement hooks use `hooks/lib/log-event.sh` to append structured events to
+`.harness/ledger.jsonl` as the agent works. Run `/reflect` periodically: it reads
+the ledger via `harness-ledger-stats.sh`, clusters recurring mistakes, and proposes
+rule / threshold / ADR changes for your approval. See `templates/CLAUDE.md` →
+"Self-improvement loop".
+
+### 7. Initialize git and first commit
 
 ```bash
 cd <project-name>
@@ -325,6 +341,8 @@ Confirm each item before reporting done:
 - [ ] `.gitignore`, `.env.example`, and `README.md` present
 - [ ] Hooks installed to `~/.claude/hooks/` and configured in `settings.json` (if selected)
 - [ ] Skills installed to `~/.claude/skills/` (if selected)
+- [ ] `.harness/reflections/` created and `.harness/ledger.jsonl` added to `.gitignore`
+- [ ] `reflect` skill installed to `~/.claude/skills/reflect`
 - [ ] Initial git commit created
 
 ## Allowed Tools

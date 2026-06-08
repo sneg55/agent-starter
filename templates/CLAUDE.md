@@ -147,6 +147,26 @@ While working a multi-step task against a spec, maintain a running `<spec>-imple
 
 Append entries as decisions come up — don't reconstruct them at the end. Keep each entry short. This is a working document scoped to the task, not permanent docs: once the developer has reviewed it and the work is merged, the file can be deleted or archived.
 
+## Self-improvement loop
+
+This project captures its own signal and improves from it. You do not need to do
+anything special during normal work — the loop runs around you.
+
+- **Signal:** the enforcement hooks append a JSON event to `.harness/ledger.jsonl`
+  every time one blocks or warns (file too large, lint failure, silent error,
+  edit-before-read). The raw ledger is gitignored — it is local and noisy.
+- **Reflect:** run `/reflect` periodically. It reads the ledger via
+  `harness-ledger-stats.sh`, finds recurring `(rule, path-prefix)` clusters, reads
+  your `feedback` memories, and proposes concrete changes — a new project rule
+  below, a hook threshold tweak, a lint rule, or an ADR. Nothing is applied without
+  your approval.
+- **Measure:** each reflection writes `.harness/reflections/YYYY-MM-DD.md` with a
+  metric snapshot (`recurring_events`). Compare across reflections to confirm a
+  promoted rule actually reduced the mistakes it targeted.
+
+Signal is private (gitignored ledger); wisdom is shared (committed reflections and
+the rules they produce).
+
 ## Project-Specific Instructions
 
 <!-- Add your project-specific instructions below -->

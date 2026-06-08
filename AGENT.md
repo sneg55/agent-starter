@@ -104,9 +104,10 @@ Skip this step for non-JS/TS stacks (Python, Rust, Go, etc.).
 ### 5. Install hooks (if selected)
 
 ```bash
-mkdir -p ~/.claude/hooks
+mkdir -p ~/.claude/hooks/lib
 cp <repo-path>/hooks/*.sh ~/.claude/hooks/
-chmod +x ~/.claude/hooks/*.sh
+cp <repo-path>/hooks/lib/*.sh ~/.claude/hooks/lib/
+chmod +x ~/.claude/hooks/*.sh ~/.claude/hooks/lib/*.sh
 ```
 
 Available hooks:
@@ -174,9 +175,27 @@ cp -r <repo-path>/skills/remember ~/.claude/skills/
 cp -r <repo-path>/skills/dream ~/.claude/skills/
 # new-project skill is included in this repo at skills/new-project/
 cp -r <repo-path>/skills/new-project ~/.claude/skills/
+cp -r <repo-path>/skills/reflect ~/.claude/skills/
 ```
 
-### 7. Initialize git and first commit
+### 7. Initialize the self-improvement ledger
+
+Create the project-local ledger directory and ignore the raw signal (keep the
+distilled reflections tracked):
+
+```bash
+mkdir -p <project-name>/.harness/reflections
+touch <project-name>/.harness/reflections/.gitkeep
+echo '.harness/ledger.jsonl' >> <project-name>/.gitignore
+```
+
+The enforcement hooks use `hooks/lib/log-event.sh` to append structured events to
+`.harness/ledger.jsonl` as the agent works. Run `/reflect` periodically: it reads
+the ledger via `harness-ledger-stats.sh`, clusters recurring mistakes, and proposes
+rule / threshold / ADR changes for your approval. See `templates/CLAUDE.md` →
+"Self-improvement loop".
+
+### 8. Initialize git and first commit
 
 ```bash
 cd <project-name>
@@ -200,4 +219,6 @@ Confirm each item before reporting done:
 - [ ] `biome.json` + `eslint.config.mjs` copied + lint deps installed (TS/JS stacks only)
 - [ ] Hooks installed to `~/.claude/hooks/` and configured in `settings.json` (if selected)
 - [ ] Skills installed to `~/.claude/skills/` (if selected)
+- [ ] `.harness/reflections/` created and `.harness/ledger.jsonl` added to `.gitignore`
+- [ ] `reflect` skill installed to `~/.claude/skills/reflect`
 - [ ] Initial git commit created

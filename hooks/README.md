@@ -8,7 +8,8 @@ Ready-to-use hook scripts for Claude Code. Add to your `settings.json`.
 ```bash
 mkdir -p ~/.claude/hooks
 cp hooks/*.sh ~/.claude/hooks/
-chmod +x ~/.claude/hooks/*.sh
+mkdir -p ~/.claude/hooks/lib && cp hooks/lib/*.sh ~/.claude/hooks/lib/
+chmod +x ~/.claude/hooks/*.sh ~/.claude/hooks/lib/*.sh
 ```
 
 2. Add to `~/.claude/settings.json` (or `.claude/settings.json` per-project):
@@ -125,3 +126,17 @@ Add to `settings.json`:
 - **Exit 0** — success, proceed normally
 - **Exit 2** — BLOCK the action, stderr shown to Claude as error
 - **Other** — warning shown to user, doesn't block
+
+## Self-improvement ledger
+
+`lib/log-event.sh` is a best-effort helper the enforcement hooks call when they
+block or warn. It appends one JSON event to the project's `.harness/ledger.jsonl`
+and always exits 0, so logging can never break a hook.
+
+`harness-ledger-stats.sh` reads that ledger and prints per-rule counts plus the
+`recurring_events` metric (events in `(rule, path-prefix)` clusters seen ≥ N times
+in a window). The `/reflect` skill uses it to propose improvements and to measure
+whether recurring mistakes drop over time.
+
+Gitignore the raw ledger but keep the distilled reflections (run from your project root):
+`echo '.harness/ledger.jsonl' >> .gitignore`
