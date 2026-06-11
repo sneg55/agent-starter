@@ -103,65 +103,28 @@ Skip this step for non-JS/TS stacks (Python, Rust, Go, etc.).
 
 ### 5. Install hooks (if selected)
 
+Run the idempotent installer — it copies the hooks (and `lib/`) to
+`~/.claude/hooks/`, stamps the installed version, and merges the hook wiring
+into `~/.claude/settings.json` with jq. Existing entries are preserved and
+re-running never duplicates anything, so there is no hand-editing of JSON:
+
 ```bash
-mkdir -p ~/.claude/hooks
-cp <repo-path>/hooks/*.sh ~/.claude/hooks/
-chmod +x ~/.claude/hooks/*.sh
+bash <repo-path>/install.sh
 ```
 
-Available hooks:
-- `check-file-size.sh` — block files >300 lines (PostToolUse:Write)
+Hooks wired by default:
+- `check-file-size.sh` — block files >300 lines (PostToolUse:Write|Edit)
 - `check-codebase-health.sh` — session-start health report (SessionStart)
-- `lint-on-edit.sh` — Biome + ESLint on save (PostToolUse:Write|Edit)
-- `track-reads.sh` + `require-read-before-edit.sh` — force Read before Edit (PostToolUse:Read, PreToolUse:Edit|Write)
+- `lint-on-edit.sh` — Biome + ESLint on save; ruff for Python (PostToolUse:Write|Edit)
 - `check-silent-errors.sh` — block swallowed exceptions (PostToolUse:Write|Edit)
+- `block-dangerous-commands.sh` — block force-push, `reset --hard`, recursive rm on `/`/`~` (PreToolUse:Bash)
 
-Merge this into `~/.claude/settings.json`. Read the existing file first, then append to the `hooks.PostToolUse` and `hooks.SessionStart` arrays — do not replace existing entries. If the hook command already appears verbatim, skip it:
+Optional: add `--with-read-guard` to also wire `track-reads.sh` +
+`require-read-before-edit.sh` (force Read before Edit). Recent Claude Code
+versions enforce read-before-edit natively, so only install it for older
+versions.
 
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/check-file-size.sh",
-            "timeout": 5,
-            "statusMessage": "Checking file size..."
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/lint-on-edit.sh",
-            "timeout": 30,
-            "statusMessage": "Linting..."
-          }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/check-codebase-health.sh .",
-            "timeout": 15,
-            "statusMessage": "Checking codebase health..."
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-Reference: `hooks/README.md` for full hook documentation.
+Reference: `hooks/README.md` for full hook documentation and manual-install snippets.
 
 ### 6. Install skills (if selected)
 
@@ -174,9 +137,27 @@ cp -r <repo-path>/skills/remember ~/.claude/skills/
 cp -r <repo-path>/skills/dream ~/.claude/skills/
 # new-project skill is included in this repo at skills/new-project/
 cp -r <repo-path>/skills/new-project ~/.claude/skills/
+cp -r <repo-path>/skills/reflect ~/.claude/skills/
 ```
 
-### 7. Initialize git and first commit
+### 7. Initialize the self-improvement ledger
+
+Create the project-local ledger directory and ignore the raw signal (keep the
+distilled reflections tracked):
+
+```bash
+mkdir -p <project-name>/.harness/reflections
+touch <project-name>/.harness/reflections/.gitkeep
+echo '.harness/ledger.jsonl' >> <project-name>/.gitignore
+```
+
+The enforcement hooks use `hooks/lib/log-event.sh` to append structured events to
+`.harness/ledger.jsonl` as the agent works. Run `/reflect` periodically: it reads
+the ledger via `harness-ledger-stats.sh`, clusters recurring mistakes, and proposes
+rule / threshold / ADR changes for your approval. See `templates/CLAUDE.md` →
+"Self-improvement loop".
+
+### 8. Initialize git and first commit
 
 ```bash
 cd <project-name>
@@ -200,4 +181,6 @@ Confirm each item before reporting done:
 - [ ] `biome.json` + `eslint.config.mjs` copied + lint deps installed (TS/JS stacks only)
 - [ ] Hooks installed to `~/.claude/hooks/` and configured in `settings.json` (if selected)
 - [ ] Skills installed to `~/.claude/skills/` (if selected)
+- [ ] `.harness/reflections/` created and `.harness/ledger.jsonl` added to `.gitignore`
+- [ ] `reflect` skill installed to `~/.claude/skills/reflect`
 - [ ] Initial git commit created

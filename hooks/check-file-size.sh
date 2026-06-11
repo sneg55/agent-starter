@@ -1,6 +1,7 @@
 #!/bin/bash
 # Claude Code hook: enforce file size limits
-# PostToolUse on Write — exit 2 to block, exit 0 to pass
+# PostToolUse on Write|Edit — exit 2 to block, exit 0 to pass
+# (wire to both: files can grow past the limit through repeated Edits)
 #
 # Install: copy to ~/.claude/hooks/ and add to settings.json
 # The hook receives tool arguments via $ARGUMENTS
@@ -45,6 +46,7 @@ Split by concern — extract into separate files:
 Each extracted file should be under 200 lines and handle a single responsibility.
 Do NOT just move code around — ensure clean imports and no circular dependencies.
 EOF
+  [ -x "$(dirname "$0")/lib/log-event.sh" ] && "$(dirname "$0")/lib/log-event.sh" file-size block "$FILE_PATH" "$LINE_COUNT lines (limit $BLOCK_THRESHOLD)"
   exit 2
 
 elif [ "$LINE_COUNT" -gt "$WARN_THRESHOLD" ]; then
@@ -58,6 +60,7 @@ Consider splitting soon. Look for:
 - Helper functions → extract to utils.ts
 - Distinct feature blocks → extract to their own module
 EOF
+  [ -x "$(dirname "$0")/lib/log-event.sh" ] && "$(dirname "$0")/lib/log-event.sh" file-size warn "$FILE_PATH" "$LINE_COUNT lines (target <$WARN_THRESHOLD)"
   exit 0
 fi
 

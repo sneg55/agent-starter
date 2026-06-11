@@ -3,9 +3,10 @@
 # PostToolUse on Write|Edit — exit 2 to block with stderr, exit 0 to pass.
 #
 # Philosophy: rules only shape agent behavior if the agent sees failures.
-# This hook runs Biome (format + fast rules, with --write), then ESLint
-# (type-aware + plugin rules), then optionally tsc --noEmit. The agent
-# gets structured errors back in its next turn and self-corrects.
+# JS/TS: runs Biome (format + fast rules, with --write), then ESLint
+# (type-aware + plugin rules), then optionally tsc --noEmit. Python: runs
+# ruff check --fix when a ruff binary is available (.venv/bin/ruff or PATH).
+# The agent gets structured errors back in its next turn and self-corrects.
 #
 # Install: copy to ~/.claude/hooks/ and add to settings.json (see README).
 
@@ -21,6 +22,34 @@ if [ -z "$FILE_PATH" ] || [ ! -f "$FILE_PATH" ]; then
 fi
 
 case "$FILE_PATH" in
+  *.py)
+    # Python path: ruff check --fix, when a project root and ruff binary exist.
+    PROJECT_ROOT=""
+    DIR=$(cd "$(dirname "$FILE_PATH")" && pwd)
+    while [ "$DIR" != "/" ]; do
+      if [ -f "$DIR/pyproject.toml" ] || [ -f "$DIR/setup.py" ] || [ -f "$DIR/requirements.txt" ] || [ -d "$DIR/.git" ]; then
+        PROJECT_ROOT="$DIR"
+        break
+      fi
+      DIR=$(dirname "$DIR")
+    done
+    [ -z "$PROJECT_ROOT" ] && exit 0
+    HOOK_DIR=$(cd "$(dirname "$0")" && pwd)
+    cd "$PROJECT_ROOT" || exit 0
+    RUFF=""
+    if [ -x .venv/bin/ruff ]; then
+      RUFF=.venv/bin/ruff
+    elif command -v ruff >/dev/null 2>&1; then
+      RUFF=ruff
+    fi
+    [ -z "$RUFF" ] && exit 0
+    if ! RUFF_OUT=$("$RUFF" check --fix "$FILE_PATH" 2>&1); then
+      printf 'Ruff errors in %s:\n%s\n' "$FILE_PATH" "$RUFF_OUT" >&2
+      [ -x "$HOOK_DIR/lib/log-event.sh" ] && "$HOOK_DIR/lib/log-event.sh" lint block "$FILE_PATH" "ruff check failed"
+      exit 2
+    fi
+    exit 0
+    ;;
   *.ts|*.tsx|*.js|*.jsx|*.mjs|*.cjs) ;;
   *) exit 0 ;;
 esac
@@ -97,6 +126,7 @@ fi
 
 if [ "$FAIL" -eq 1 ]; then
   printf '%s' "$OUT" >&2
+  [ -x "$(dirname "$0")/lib/log-event.sh" ] && "$(dirname "$0")/lib/log-event.sh" lint block "$FILE_PATH" "lint or typecheck failed"
   exit 2
 fi
 

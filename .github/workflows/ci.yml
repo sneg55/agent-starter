@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ruff (exercises the Python lint path)
+        run: python3 -m pip install --quiet ruff
+      - name: Run test suite
+        run: bash tests/run.sh
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint shell scripts
+        # SC1090/91: dynamic sources; SC2319: the tests' deliberate `[ ... ]; echo $?` idiom
+        run: shellcheck -S warning -e SC1090,SC1091,SC2319 install.sh hooks/*.sh hooks/lib/*.sh tests/run.sh tests/lib/*.sh tests/*.test.sh

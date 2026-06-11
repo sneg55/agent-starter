@@ -236,50 +236,23 @@ coverage/
 
 ### 4. Install hooks (if selected)
 
+Run the idempotent installer — it copies the hooks (and `lib/`) to
+`~/.claude/hooks/`, stamps the installed version, and merges the hook wiring
+into `~/.claude/settings.json` with jq. Existing entries are preserved and
+re-running never duplicates anything — do not hand-edit the JSON:
+
 ```bash
-mkdir -p ~/.claude/hooks
-cp <repo-path>/hooks/check-file-size.sh ~/.claude/hooks/
-cp <repo-path>/hooks/check-codebase-health.sh ~/.claude/hooks/
-chmod +x ~/.claude/hooks/check-file-size.sh ~/.claude/hooks/check-codebase-health.sh
+bash <repo-path>/install.sh
 ```
 
-Merge into `~/.claude/settings.json`. Read the existing file first, then append to the `hooks.PostToolUse` and `hooks.SessionStart` arrays — do not replace existing entries. If the hook command already appears verbatim, skip it:
-
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/check-file-size.sh",
-            "timeout": 5,
-            "statusMessage": "Checking file size..."
-          }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/check-codebase-health.sh .",
-            "timeout": 15,
-            "statusMessage": "Checking codebase health..."
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-Hook behavior:
-- `check-file-size.sh` — runs after every Write. Blocks (exit 2) files over 300 lines; warns over 200 lines. Skips `.md`, `.json`, `.yaml`.
+Hook behavior (wired by default):
+- `check-file-size.sh` — runs after every Write/Edit. Blocks (exit 2) files over 300 lines; warns over 200 lines. Skips `.md`, `.json`, `.yaml`.
+- `lint-on-edit.sh` — Biome + ESLint on save for JS/TS; ruff for Python.
+- `check-silent-errors.sh` — blocks writes that introduce swallowed exceptions.
+- `block-dangerous-commands.sh` — blocks force-push, `git reset --hard`, recursive rm on `/`/`~`, before they run.
 - `check-codebase-health.sh` — runs at session start. Reports files over 500 lines that need splitting. Silent when healthy.
+
+Optional: `--with-read-guard` also wires `track-reads.sh` + `require-read-before-edit.sh`. Recent Claude Code versions enforce read-before-edit natively, so only add it for older versions.
 
 ### 5. Install skills (if selected)
 
@@ -292,6 +265,7 @@ cp -r <repo-path>/skills/remember ~/.claude/skills/
 cp -r <repo-path>/skills/dream ~/.claude/skills/
 # new-project skill is included in this repo at skills/new-project/
 cp -r <repo-path>/skills/new-project ~/.claude/skills/
+cp -r <repo-path>/skills/reflect ~/.claude/skills/
 ```
 
 Installed skills:
@@ -301,8 +275,23 @@ Installed skills:
 - `/remember` — review auto-memory and promote to CLAUDE.md or CLAUDE.local.md
 - `/dream` — memory consolidation: merge, prune, re-index memory files
 - `/new-project` — this skill (bootstrap a new project)
+- `/reflect` — read ledger, cluster recurring mistakes, propose improvements
 
-### 6. Initialize git and first commit
+### 6. Initialize the self-improvement ledger
+
+```bash
+mkdir -p <project-name>/.harness/reflections
+touch <project-name>/.harness/reflections/.gitkeep
+echo '.harness/ledger.jsonl' >> <project-name>/.gitignore
+```
+
+The enforcement hooks use `hooks/lib/log-event.sh` to append structured events to
+`.harness/ledger.jsonl` as the agent works. Run `/reflect` periodically: it reads
+the ledger via `harness-ledger-stats.sh`, clusters recurring mistakes, and proposes
+rule / threshold / ADR changes for your approval. See `templates/CLAUDE.md` →
+"Self-improvement loop".
+
+### 7. Initialize git and first commit
 
 ```bash
 cd <project-name>
@@ -325,6 +314,8 @@ Confirm each item before reporting done:
 - [ ] `.gitignore`, `.env.example`, and `README.md` present
 - [ ] Hooks installed to `~/.claude/hooks/` and configured in `settings.json` (if selected)
 - [ ] Skills installed to `~/.claude/skills/` (if selected)
+- [ ] `.harness/reflections/` created and `.harness/ledger.jsonl` added to `.gitignore`
+- [ ] `reflect` skill installed to `~/.claude/skills/reflect`
 - [ ] Initial git commit created
 
 ## Allowed Tools

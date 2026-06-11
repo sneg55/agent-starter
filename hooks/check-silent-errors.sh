@@ -86,6 +86,7 @@ sentinel. Exempt a single site with '// silent-ok' (JS/TS) or '# silent-ok' (Py)
 
 See guides/hooks-reference.md § "Block silent error patterns".
 EOF
+  [ -x "$(dirname "$0")/lib/log-event.sh" ] && "$(dirname "$0")/lib/log-event.sh" silent-error block "$FILE_PATH" "silent error handler"
   exit 2
 fi
 

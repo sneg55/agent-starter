@@ -1,6 +1,10 @@
 # agent-starter
 
-Anthropic's own engineering patterns, extracted from the Claude Code CLI source leak and packaged into reusable skills, templates, and guides for bootstrapping AI-agent-friendly projects.
+A toolkit of skills, templates, and guides for bootstrapping AI-agent-friendly projects.
+
+It **started** as Anthropic's own engineering patterns — extracted from the Claude Code CLI source and packaged into reusable form. It has since been **extended** with additional best practices, tooling, and original ideas that go beyond the source material. The flagship extension is a **per-project self-improvement loop**: scaffolded projects capture signal from their own usage and turn it into better rules over time (see below).
+
+So the patterns here come from two places: those marked _"derived from Anthropic's Claude Code source"_ are reverse-engineered from the real thing; everything else is added on top.
 
 ## Usage
 
@@ -17,6 +21,13 @@ npx skills add sneg55/agent-starter -a claude-code -g
 ```
 
 Then: `/new-project`
+
+To install just the hooks (with their `settings.json` wiring merged idempotently via jq):
+
+```bash
+git clone https://github.com/sneg55/agent-starter && cd agent-starter
+./install.sh   # add --with-read-guard for the read-before-edit pair
+```
 
 ## Guides
 
@@ -99,8 +110,32 @@ Full git workflow — creates branch, commits, pushes, and creates/updates a PR 
 ### /dream
 Memory consolidation — reflective pass that merges, prunes, and re-indexes memory files. Run periodically to keep memories organized. Works through 4 phases: orient, gather, consolidate, prune.
 
+### /reflect
+Per-project self-improvement — reads the `.harness` ledger and `feedback` memories, clusters recurring mistakes, and proposes gated rule / threshold / lint / ADR changes for your approval. Records a `recurring_events` metric snapshot each run so you can verify mistakes actually drop over time. The promotion step of the [Self-Improvement Loop](#self-improvement-loop).
+
 ### /new-project
 Full project bootstrap — interviews the developer (name, description, stack, components), then scaffolds directory structure, CLAUDE.md, config files, hooks, skills, and first commit. Mirrors `AGENT.md`.
+
+## Self-Improvement Loop
+
+> _New — added on top of the original Anthropic patterns._
+
+Most starters are a frozen snapshot: every project begins from the same patterns and never learns from how it's actually used. agent-starter ships the machinery for each scaffolded project to **improve itself** from its own signal.
+
+The loop has four parts — the first three reuse the existing memory + hooks system, and only signal capture and measurement are new:
+
+```
+ ① signal → ② store → ③ promote → ④ measure → (back to ①)
+   ▲                                              │
+   └──────────────────────────────────────────────┘
+```
+
+- **① Signal** — `hooks/lib/log-event.sh` appends one JSON event to the project's `.harness/ledger.jsonl` every time an enforcement hook blocks or warns (file too large, lint failure, swallowed error, edit-before-read). It's best-effort: it always exits 0, so logging can never break a hook. Your explicit corrections are already captured as `feedback` memories — the highest-value signal.
+- **② Store** — the append-only ledger (structured events) plus the existing memory files (prose knowledge). The raw ledger is gitignored — local and noisy; distilled learnings are committed.
+- **③ Promote** — the `/reflect` skill reads the ledger and your feedback memories, clusters recurring mistakes, and **proposes** concrete changes for your approval: a new project rule, a hook-threshold tweak, a lint rule, or an ADR. Nothing is auto-applied — you stay in the loop on every change.
+- **④ Measure** — `hooks/harness-ledger-stats.sh` computes a `recurring_events` metric (mistakes that fall in recurring `(rule, path-prefix)` clusters). Each reflection records a snapshot to `.harness/reflections/YYYY-MM-DD.md`, so the next reflection can confirm a promoted rule actually reduced the mistakes it targeted.
+
+The principle: **signal is private (gitignored ledger), wisdom is shared (committed reflections and the rules they produce).** New projects scaffolded via `AGENT.md` / `/new-project` are born with the loop wired in. See `/reflect` under [Skills](#skills) and the ledger scripts under `hooks/`.
 
 ## Memory Taxonomy
 
