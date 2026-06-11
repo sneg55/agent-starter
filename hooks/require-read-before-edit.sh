@@ -54,6 +54,7 @@ EXEMPT_FILE="$PROJECT_ROOT/.claude/read-before-edit-exempt"
 if [ -f "$EXEMPT_FILE" ]; then
   while IFS= read -r pattern; do
     [ -z "$pattern" ] && continue
+    # shellcheck disable=SC2254  # unquoted on purpose: exempt entries are globs
     case "$FILE_PATH" in
       $pattern) exit 0 ;;
     esac

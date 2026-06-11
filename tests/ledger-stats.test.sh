@@ -57,7 +57,7 @@ assert_eq "$want" "$got" "empty ledger zeros"
 rm -f "$empty"
 
 # Case 6: a value-less trailing flag must not hang (regression for the shift-2 fix).
-out=$(timeout 5 bash "$STATS" --ledger "$FIX" --since); rc=$?
+timeout 5 bash "$STATS" --ledger "$FIX" --since >/dev/null 2>&1; rc=$?
 assert_eq 0 "$rc" "trailing valueless flag does not hang"
 
 exit $ASSERT_FAILED
