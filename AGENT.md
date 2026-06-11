@@ -103,66 +103,28 @@ Skip this step for non-JS/TS stacks (Python, Rust, Go, etc.).
 
 ### 5. Install hooks (if selected)
 
+Run the idempotent installer — it copies the hooks (and `lib/`) to
+`~/.claude/hooks/`, stamps the installed version, and merges the hook wiring
+into `~/.claude/settings.json` with jq. Existing entries are preserved and
+re-running never duplicates anything, so there is no hand-editing of JSON:
+
 ```bash
-mkdir -p ~/.claude/hooks/lib
-cp <repo-path>/hooks/*.sh ~/.claude/hooks/
-cp <repo-path>/hooks/lib/*.sh ~/.claude/hooks/lib/
-chmod +x ~/.claude/hooks/*.sh ~/.claude/hooks/lib/*.sh
+bash <repo-path>/install.sh
 ```
 
-Available hooks:
-- `check-file-size.sh` — block files >300 lines (PostToolUse:Write)
+Hooks wired by default:
+- `check-file-size.sh` — block files >300 lines (PostToolUse:Write|Edit)
 - `check-codebase-health.sh` — session-start health report (SessionStart)
-- `lint-on-edit.sh` — Biome + ESLint on save (PostToolUse:Write|Edit)
-- `track-reads.sh` + `require-read-before-edit.sh` — force Read before Edit (PostToolUse:Read, PreToolUse:Edit|Write)
+- `lint-on-edit.sh` — Biome + ESLint on save; ruff for Python (PostToolUse:Write|Edit)
 - `check-silent-errors.sh` — block swallowed exceptions (PostToolUse:Write|Edit)
+- `block-dangerous-commands.sh` — block force-push, `reset --hard`, recursive rm on `/`/`~` (PreToolUse:Bash)
 
-Merge this into `~/.claude/settings.json`. Read the existing file first, then append to the `hooks.PostToolUse` and `hooks.SessionStart` arrays — do not replace existing entries. If the hook command already appears verbatim, skip it:
+Optional: add `--with-read-guard` to also wire `track-reads.sh` +
+`require-read-before-edit.sh` (force Read before Edit). Recent Claude Code
+versions enforce read-before-edit natively, so only install it for older
+versions.
 
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/check-file-size.sh",
-            "timeout": 5,
-            "statusMessage": "Checking file size..."
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/lint-on-edit.sh",
-            "timeout": 30,
-            "statusMessage": "Linting..."
-          }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/check-codebase-health.sh .",
-            "timeout": 15,
-            "statusMessage": "Checking codebase health..."
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-Reference: `hooks/README.md` for full hook documentation.
+Reference: `hooks/README.md` for full hook documentation and manual-install snippets.
 
 ### 6. Install skills (if selected)
 

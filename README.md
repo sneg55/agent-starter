@@ -22,6 +22,13 @@ npx skills add sneg55/agent-starter -a claude-code -g
 
 Then: `/new-project`
 
+To install just the hooks (with their `settings.json` wiring merged idempotently via jq):
+
+```bash
+git clone https://github.com/sneg55/agent-starter && cd agent-starter
+./install.sh   # add --with-read-guard for the read-before-edit pair
+```
+
 ## Guides
 
 ### `guides/large-codebase-best-practices.md`

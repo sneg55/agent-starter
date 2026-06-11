@@ -236,50 +236,23 @@ coverage/
 
 ### 4. Install hooks (if selected)
 
+Run the idempotent installer — it copies the hooks (and `lib/`) to
+`~/.claude/hooks/`, stamps the installed version, and merges the hook wiring
+into `~/.claude/settings.json` with jq. Existing entries are preserved and
+re-running never duplicates anything — do not hand-edit the JSON:
+
 ```bash
-mkdir -p ~/.claude/hooks/lib
-cp <repo-path>/hooks/*.sh ~/.claude/hooks/
-cp <repo-path>/hooks/lib/*.sh ~/.claude/hooks/lib/
-chmod +x ~/.claude/hooks/*.sh ~/.claude/hooks/lib/*.sh
+bash <repo-path>/install.sh
 ```
 
-Merge into `~/.claude/settings.json`. Read the existing file first, then append to the `hooks.PostToolUse` and `hooks.SessionStart` arrays — do not replace existing entries. If the hook command already appears verbatim, skip it:
-
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/check-file-size.sh",
-            "timeout": 5,
-            "statusMessage": "Checking file size..."
-          }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/check-codebase-health.sh .",
-            "timeout": 15,
-            "statusMessage": "Checking codebase health..."
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-Hook behavior:
-- `check-file-size.sh` — runs after every Write. Blocks (exit 2) files over 300 lines; warns over 200 lines. Skips `.md`, `.json`, `.yaml`.
+Hook behavior (wired by default):
+- `check-file-size.sh` — runs after every Write/Edit. Blocks (exit 2) files over 300 lines; warns over 200 lines. Skips `.md`, `.json`, `.yaml`.
+- `lint-on-edit.sh` — Biome + ESLint on save for JS/TS; ruff for Python.
+- `check-silent-errors.sh` — blocks writes that introduce swallowed exceptions.
+- `block-dangerous-commands.sh` — blocks force-push, `git reset --hard`, recursive rm on `/`/`~`, before they run.
 - `check-codebase-health.sh` — runs at session start. Reports files over 500 lines that need splitting. Silent when healthy.
+
+Optional: `--with-read-guard` also wires `track-reads.sh` + `require-read-before-edit.sh`. Recent Claude Code versions enforce read-before-edit natively, so only add it for older versions.
 
 ### 5. Install skills (if selected)
 

@@ -20,4 +20,9 @@ check "templates/CLAUDE.md" ".harness/ledger.jsonl" "CLAUDE template names the l
 check "hooks/README.md" "Self-improvement ledger" "README documents the ledger section"
 check "hooks/README.md" "log-event.sh" "README documents the log-event helper"
 
+check AGENT.md "install.sh" "AGENT.md uses the installer"
+check "skills/new-project/SKILL.md" "install.sh" "new-project uses the installer"
+check "hooks/README.md" "install.sh" "hooks README documents the installer"
+check "hooks/README.md" "block-dangerous-commands" "hooks README documents the dangerous-commands hook"
+
 exit $ASSERT_FAILED
