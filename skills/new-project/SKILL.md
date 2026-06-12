@@ -24,8 +24,8 @@ Ask these questions **one at a time** before taking any action:
 2. **Description** — one sentence describing what it does.
 3. **Tech stack** — language, framework, package manager (e.g. "TypeScript, Next.js, pnpm").
 4. **Optional components** — which would you like installed?
-   - Hooks (auto-enforce file size limits and codebase health checks at `~/.claude/hooks/`)
-   - Skills (commit, commit-push-pr, simplify, remember, dream, new-project at `~/.claude/skills/`)
+   - Hooks (auto-enforce file size limits, lint-on-save, silent-error and dangerous-command blocking, codebase health checks at `~/.claude/hooks/`)
+   - Skills (commit, commit-push-pr, simplify, remember, dream, new-project, reflect at `~/.claude/skills/`)
    - Both
    - Neither
 5. **Repo path** (only if hooks or skills selected) — what is the local path to the agent-starter repo? (e.g. `~/code/agent-starter`). If the answer to question 4 was "Neither", skip this question.
