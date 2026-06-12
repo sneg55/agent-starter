@@ -33,9 +33,7 @@ class TruncateResult:
     original_chars: int
 
 
-def truncate_for_context(
-    text_in: str, opts: TruncateOptions | None = None
-) -> TruncateResult:
+def truncate_for_context(text_in: str, opts: TruncateOptions | None = None) -> TruncateResult:
     o = opts or TruncateOptions()
     original_chars = len(text_in)
     lines = text_in.split("\n")

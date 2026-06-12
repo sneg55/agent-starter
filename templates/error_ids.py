@@ -4,7 +4,7 @@ Rules:
   1. Never reuse a retired ID — mark it `# retired` and leave it in place.
   2. One ID per distinct cause, not per raise site.
   3. Numbers are stable; append, never renumber.
-  4. Domain prefix (3–5 letters) is required.
+  4. Domain prefix (3-5 letters) is required.
 
 Raise via AppError(ErrorIds.X, "...", {...}). Log lines include the ID so
 grep, telemetry, and agents can all find every occurrence with one search.
@@ -68,7 +68,5 @@ class AppError(Exception):
         self.context = context or {}
 
     def to_log_line(self) -> str:
-        ctx = " ".join(
-            f"{k}={json.dumps(v, default=str)}" for k, v in self.context.items()
-        )
+        ctx = " ".join(f"{k}={json.dumps(v, default=str)}" for k, v in self.context.items())
         return f"[{self.id}] {self}{' ' + ctx if ctx else ''}"

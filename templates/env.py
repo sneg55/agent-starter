@@ -45,10 +45,7 @@ def _load_env() -> Env:
     except ValidationError as e:
         # Render a readable error at startup. One bad env var should surface the
         # exact field and reason, not crash 10 stack frames deep.
-        lines = [
-            f"  {'.'.join(str(p) for p in err['loc'])}: {err['msg']}"
-            for err in e.errors()
-        ]
+        lines = [f"  {'.'.join(str(p) for p in err['loc'])}: {err['msg']}" for err in e.errors()]
         print(  # noqa: T201 — startup error; must reach stderr.
             "[env] invalid configuration:\n" + "\n".join(lines),
             file=sys.stderr,
