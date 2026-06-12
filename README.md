@@ -44,7 +44,7 @@ Complete reference for Claude Code's hook system — all 4 hook types, all 27 ev
 The `BashTool/`-style directory-per-tool layout extracted from Claude Code's own source. Each tool is a handful of single-purpose files (`toolName.ts`, `schema.ts`, `prompt.ts`, `validation.ts`, `permissions.ts`, `security.ts`, `execute.ts`, `result.ts`). Gives an agent a predictable place to look when editing any tool and breaks whole classes of import cycles.
 
 ### `guides/error-id-registry.md`
-Every thrown error carries a stable ID (`E_CFG_003`) from a central registry. Logs, telemetry, docs, and agents all reference the same ID, so error-message rewordings don't break grep or alerting. Pairs with `templates/errorIds.ts`.
+Every thrown error carries a stable ID (`E_CFG_003`) from a central registry. Logs, telemetry, docs, and agents all reference the same ID, so error-message rewordings don't break grep or alerting. Pairs with `templates/errorIds.ts` (TS) and `templates/error_ids.py` (Python).
 
 ### `guides/discriminated-union-results.md`
 `Result<Ok, Err>` as the one shape every fallible function returns. Exhaustiveness-checked via the compiler; no ad-hoc `{success, data}` / `{ok: 1}` drift across edits. Reserves throws for programmer errors only.
@@ -56,7 +56,7 @@ Thread `AbortSignal` through every long-running call so Ctrl+C, timeouts, and ob
 How to structure prompts so Anthropic's prefix cache hits 80%+. Canonical order (system → tools → stable context → history → user turn), the cache breakpoint layout, silent cache-breakers (timestamps, unstable JSON key order, per-user strings in the prefix), and TTL-aware polling intervals.
 
 ### `guides/zod-at-the-boundary.md`
-Validate external data the moment it enters your program; never re-check inside. The schema is the source of truth for the type (`type T = z.infer<typeof schema>`). Covers env vars, config files, HTTP responses, and LLM output. Pairs with `templates/env.ts`.
+Validate external data the moment it enters your program; never re-check inside. The schema is the source of truth for the type (`type T = z.infer<typeof schema>`). Covers env vars, config files, HTTP responses, and LLM output — in TS with Zod and in Python with pydantic. Pairs with `templates/env.ts` and `templates/env.py`.
 
 ## Templates
 
