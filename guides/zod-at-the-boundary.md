@@ -195,8 +195,61 @@ Now a function that takes `Email` can only receive a parsed one. Raw strings fai
 - **Schema changes propagate as compile errors.** Add a field: the compiler lists every site that needs it. Remove one: same.
 - **No type-lies.** `JSON.parse(x) as Config` compiles and lies; `configSchema.parse(x)` either succeeds honestly or fails loudly.
 
+## Python: same pattern, pydantic
+
+The intro already said it: swap the library, keep the rule. In Python the boundary tool is pydantic v2 — the model is the source of truth for the type, and nothing duplicates the shape in a `TypedDict` or dataclass.
+
+```python
+# src/config/schema.py
+from pydantic import BaseModel, Field, HttpUrl
+
+class Features(BaseModel):
+    beta: bool = False
+
+class Config(BaseModel):
+    api_url: HttpUrl
+    timeout_ms: int = Field(default=30_000, gt=0)
+    features: Features = Field(default_factory=Features)
+```
+
+```python
+# src/config/load.py — the boundary
+import json
+from pathlib import Path
+
+from pydantic import ValidationError
+
+from app.config.schema import Config
+from app.error_ids import AppError, ErrorIds
+
+def load_config(path: str) -> Config:
+    raw = json.loads(Path(path).read_text())
+    try:
+        return Config.model_validate(raw)
+    except ValidationError as e:
+        raise AppError(
+            ErrorIds.CFG_SCHEMA_FAIL, "config invalid",
+            {"path": path, "errors": e.errors()},
+        ) from e
+```
+
+Inside, `Config` is trusted — no `isinstance` checks, no `.get(..., default)` fallbacks for fields the model already defaulted.
+
+The boundary map translates directly:
+
+- **Env vars** — `templates/env.py` is the single env boundary via `pydantic-settings`, the analog of `templates/env.ts`. Validation at import time; invalid env exits with the exact field and reason.
+- **LLM output** — `Model.model_validate_json(response_text)`. On `ValidationError`, re-prompt with `e.errors()` or fall back. Same rule: "near-perfect schema adherence" is the failure mode you catch.
+- **Network** — validate response bodies with a model per endpoint; extra fields are ignored by default, removed fields fail loudly.
+
+And the patterns:
+
+- **`parse` vs `safeParse`** maps to *let `ValidationError` crash startup* (env, loaded-once config) vs *catch it and return a `Result`* (HTTP bodies, file reads, LLM replies). See the Python section of `guides/discriminated-union-results.md`.
+- **Defaults and `.transform`** live in the model: `Field(default=...)`, `field_validator` for normalization (ISO string → `datetime`).
+- **Branded types** — `Annotated[str, AfterValidator(check)]`, or `NewType` for the cheap version; a function that takes `Email` can only receive a validated one.
+
 ## Cross-references
 
 - `guides/discriminated-union-results.md` — `safeParse` pairs naturally with `Result<T, AppError>`.
 - `guides/error-id-registry.md` — schema failures throw with a stable `E_CFG_SCHEMA_FAIL` / `E_LLM_BAD_RESPONSE` ID.
 - `guides/large-codebase-best-practices.md` §9 — env validation is the same pattern in miniature; this guide generalizes it.
+- `templates/env.py` / `templates/ruff.toml` — the Python halves: pydantic-settings env boundary, and lint rules that keep `os.environ` reads out of module depths.
