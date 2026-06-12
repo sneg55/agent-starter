@@ -5,7 +5,8 @@
 # Philosophy: rules only shape agent behavior if the agent sees failures.
 # JS/TS: runs Biome (format + fast rules, with --write), then ESLint
 # (type-aware + plugin rules), then optionally tsc --noEmit. Python: runs
-# ruff check --fix when a ruff binary is available (.venv/bin/ruff or PATH).
+# ruff check --fix, then ruff format, when a ruff binary is available
+# (.venv/bin/ruff or PATH).
 # The agent gets structured errors back in its next turn and self-corrects.
 #
 # Install: copy to ~/.claude/hooks/ and add to settings.json (see README).
@@ -48,6 +49,9 @@ case "$FILE_PATH" in
       [ -x "$HOOK_DIR/lib/log-event.sh" ] && "$HOOK_DIR/lib/log-event.sh" lint block "$FILE_PATH" "ruff check failed"
       exit 2
     fi
+    # Formatting parity with Biome's --write. Best-effort: format only fails on
+    # syntax errors, which check already reported, so never block on it.
+    "$RUFF" format --quiet "$FILE_PATH" >/dev/null 2>&1 || true
     exit 0
     ;;
   *.ts|*.tsx|*.js|*.jsx|*.mjs|*.cjs) ;;
