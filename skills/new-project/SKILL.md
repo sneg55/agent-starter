@@ -234,6 +234,27 @@ coverage/
 <!-- Add setup instructions here -->
 ```
 
+**Lint configs** — if the stack is TypeScript/JavaScript:
+
+```bash
+cp <repo-path>/templates/biome.json <project-name>/biome.json
+cp <repo-path>/templates/eslint.config.mjs <project-name>/eslint.config.mjs
+cd <project-name> && npm i -D @biomejs/biome eslint typescript-eslint eslint-plugin-import \
+  eslint-plugin-sonarjs eslint-plugin-security eslint-plugin-eslint-comments
+```
+
+If the stack is Python:
+
+```bash
+cp <repo-path>/templates/ruff.toml <project-name>/ruff.toml
+cp <repo-path>/templates/pyrightconfig.json <project-name>/pyrightconfig.json
+cd <project-name> && uv add --dev ruff pyright   # or: python -m pip install ruff pyright
+```
+
+(Requires the repo path from interview question 5; if the developer chose "Neither" for components, ask for the repo path now or skip lint configs.)
+
+See `guides/lint-rules-for-ai.md` for what the rules catch. Skip for other stacks.
+
 ### 4. Install hooks (if selected)
 
 Run the idempotent installer — it copies the hooks (and `lib/`) to
@@ -247,7 +268,7 @@ bash <repo-path>/install.sh
 
 Hook behavior (wired by default):
 - `check-file-size.sh` — runs after every Write/Edit. Blocks (exit 2) files over 300 lines; warns over 200 lines. Skips `.md`, `.json`, `.yaml`.
-- `lint-on-edit.sh` — Biome + ESLint on save for JS/TS; ruff for Python.
+- `lint-on-edit.sh` — Biome + ESLint on save for JS/TS; ruff check + format for Python.
 - `check-silent-errors.sh` — blocks writes that introduce swallowed exceptions.
 - `block-dangerous-commands.sh` — blocks force-push, `git reset --hard`, recursive rm on `/`/`~`, before they run.
 - `check-codebase-health.sh` — runs at session start. Reports files over 500 lines that need splitting. Silent when healthy.

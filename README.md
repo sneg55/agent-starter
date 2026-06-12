@@ -35,7 +35,7 @@ git clone https://github.com/sneg55/agent-starter && cd agent-starter
 Comprehensive best practices for setting up and scaling a large codebase with Claude Code — directory structure, file size targets, naming conventions, error handling, CLAUDE.md hierarchy, and more. All derived from analyzing Anthropic's own Claude Code CLI source.
 
 ### `guides/lint-rules-for-ai.md`
-Tiered Biome + ESLint ruleset tuned for AI-agent-driven TypeScript codebases. Blocks the specific mistakes LLMs make (dropped `await`s, `any` escape hatches, hallucinated imports, half-finished functions) rather than enforcing arbitrary line caps. Biome handles fast syntactic rules + formatting; ESLint keeps type-aware and plugin-specific rules. Pairs with `templates/biome.json`, `templates/eslint.config.mjs`, and `hooks/lint-on-edit.sh`.
+Tiered Biome + ESLint ruleset tuned for AI-agent-driven TypeScript codebases. Blocks the specific mistakes LLMs make (dropped `await`s, `any` escape hatches, hallucinated imports, half-finished functions) rather than enforcing arbitrary line caps. Biome handles fast syntactic rules + formatting; ESLint keeps type-aware and plugin-specific rules. Pairs with `templates/biome.json`, `templates/eslint.config.mjs`, and `hooks/lint-on-edit.sh`. Includes the Python half: the same tiers via ruff + pyright, pairing with `templates/ruff.toml` + `templates/pyrightconfig.json`.
 
 ### `guides/hooks-reference.md`
 Complete reference for Claude Code's hook system — all 4 hook types, all 27 events, exit code behavior, configuration format, and 10 practical examples (auto-lint, block dangerous commands, agent verification, security review, Slack notifications, and more).
@@ -77,6 +77,12 @@ Head-plus-tail truncator for tool output. Keeps the first N lines and last M lin
 
 ### `templates/env.ts`
 Single env-var boundary. All `process.env` reads happen here and nowhere else (the ESLint config enforces this). Zod schema is the source of truth for the `Env` type; invalid env fails loudly at startup with the exact field and reason. Pairs with `guides/zod-at-the-boundary.md`.
+
+### `templates/ruff.toml` + `templates/pyrightconfig.json`
+Drop-in ruff + pyright configs for AI-agent Python projects — the Python counterpart of the Biome + ESLint pair. Ruff owns formatting and fast syntactic rules; pyright (strict) owns type-aware analysis and catches hallucinated imports. See `guides/lint-rules-for-ai.md`.
+
+### `templates/env.py`, `templates/error_ids.py`, `templates/truncate_for_context.py`
+Python ports of `env.ts`, `errorIds.ts`, and `truncate-for-context.ts`: a pydantic-settings env boundary, a `StrEnum` error-ID registry + `AppError`, and the head+tail output truncator. The guides' Python sections explain each.
 
 **Usage:**
 ```bash

@@ -85,7 +85,7 @@ coverage/
 <!-- Add setup instructions here -->
 ```
 
-### 4. Install Biome + ESLint configs (TypeScript/JavaScript projects only)
+### 4. Install lint configs (TypeScript/JavaScript or Python projects)
 
 Reference: `guides/lint-rules-for-ai.md`
 
@@ -99,7 +99,18 @@ npm i -D @biomejs/biome eslint typescript-eslint eslint-plugin-import \
   eslint-plugin-sonarjs eslint-plugin-security eslint-plugin-eslint-comments
 ```
 
-Skip this step for non-JS/TS stacks (Python, Rust, Go, etc.).
+If the stack is Python, copy the ruff + pyright configs instead. Ruff handles formatting + fast syntactic rules; pyright handles type-aware analysis.
+
+```bash
+cp <repo-path>/templates/ruff.toml <project-name>/ruff.toml
+cp <repo-path>/templates/pyrightconfig.json <project-name>/pyrightconfig.json
+cd <project-name>
+uv add --dev ruff pyright   # or: python -m pip install ruff pyright
+```
+
+For Python projects, also offer the Python foundation templates: `templates/env.py` (env boundary), `templates/error_ids.py` (error registry), `templates/truncate_for_context.py` (output truncation) — copy into `src/utils/` / `src/constants/` per the directory layout.
+
+Skip this step for other stacks (Rust, Go, etc.).
 
 ### 5. Install hooks (if selected)
 
@@ -115,7 +126,7 @@ bash <repo-path>/install.sh
 Hooks wired by default:
 - `check-file-size.sh` — block files >300 lines (PostToolUse:Write|Edit)
 - `check-codebase-health.sh` — session-start health report (SessionStart)
-- `lint-on-edit.sh` — Biome + ESLint on save; ruff for Python (PostToolUse:Write|Edit)
+- `lint-on-edit.sh` — Biome + ESLint on save; ruff check + format for Python (PostToolUse:Write|Edit)
 - `check-silent-errors.sh` — block swallowed exceptions (PostToolUse:Write|Edit)
 - `block-dangerous-commands.sh` — block force-push, `reset --hard`, recursive rm on `/`/`~` (PreToolUse:Bash)
 
