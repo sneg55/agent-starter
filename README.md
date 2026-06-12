@@ -35,7 +35,7 @@ git clone https://github.com/sneg55/agent-starter && cd agent-starter
 Comprehensive best practices for setting up and scaling a large codebase with Claude Code — directory structure, file size targets, naming conventions, error handling, CLAUDE.md hierarchy, and more. All derived from analyzing Anthropic's own Claude Code CLI source.
 
 ### `guides/lint-rules-for-ai.md`
-Tiered Biome + ESLint ruleset tuned for AI-agent-driven TypeScript codebases. Blocks the specific mistakes LLMs make (dropped `await`s, `any` escape hatches, hallucinated imports, half-finished functions) rather than enforcing arbitrary line caps. Biome handles fast syntactic rules + formatting; ESLint keeps type-aware and plugin-specific rules. Pairs with `templates/biome.json`, `templates/eslint.config.mjs`, and `hooks/lint-on-edit.sh`.
+Tiered Biome + ESLint ruleset tuned for AI-agent-driven TypeScript codebases. Blocks the specific mistakes LLMs make (dropped `await`s, `any` escape hatches, hallucinated imports, half-finished functions) rather than enforcing arbitrary line caps. Biome handles fast syntactic rules + formatting; ESLint keeps type-aware and plugin-specific rules. Pairs with `templates/biome.json`, `templates/eslint.config.mjs`, and `hooks/lint-on-edit.sh`. Includes the Python half: the same tiers via ruff + pyright, pairing with `templates/ruff.toml` + `templates/pyrightconfig.json`.
 
 ### `guides/hooks-reference.md`
 Complete reference for Claude Code's hook system — all 4 hook types, all 27 events, exit code behavior, configuration format, and 10 practical examples (auto-lint, block dangerous commands, agent verification, security review, Slack notifications, and more).
@@ -44,7 +44,7 @@ Complete reference for Claude Code's hook system — all 4 hook types, all 27 ev
 The `BashTool/`-style directory-per-tool layout extracted from Claude Code's own source. Each tool is a handful of single-purpose files (`toolName.ts`, `schema.ts`, `prompt.ts`, `validation.ts`, `permissions.ts`, `security.ts`, `execute.ts`, `result.ts`). Gives an agent a predictable place to look when editing any tool and breaks whole classes of import cycles.
 
 ### `guides/error-id-registry.md`
-Every thrown error carries a stable ID (`E_CFG_003`) from a central registry. Logs, telemetry, docs, and agents all reference the same ID, so error-message rewordings don't break grep or alerting. Pairs with `templates/errorIds.ts`.
+Every thrown error carries a stable ID (`E_CFG_003`) from a central registry. Logs, telemetry, docs, and agents all reference the same ID, so error-message rewordings don't break grep or alerting. Pairs with `templates/errorIds.ts` (TS) and `templates/error_ids.py` (Python).
 
 ### `guides/discriminated-union-results.md`
 `Result<Ok, Err>` as the one shape every fallible function returns. Exhaustiveness-checked via the compiler; no ad-hoc `{success, data}` / `{ok: 1}` drift across edits. Reserves throws for programmer errors only.
@@ -56,7 +56,7 @@ Thread `AbortSignal` through every long-running call so Ctrl+C, timeouts, and ob
 How to structure prompts so Anthropic's prefix cache hits 80%+. Canonical order (system → tools → stable context → history → user turn), the cache breakpoint layout, silent cache-breakers (timestamps, unstable JSON key order, per-user strings in the prefix), and TTL-aware polling intervals.
 
 ### `guides/zod-at-the-boundary.md`
-Validate external data the moment it enters your program; never re-check inside. The schema is the source of truth for the type (`type T = z.infer<typeof schema>`). Covers env vars, config files, HTTP responses, and LLM output. Pairs with `templates/env.ts`.
+Validate external data the moment it enters your program; never re-check inside. The schema is the source of truth for the type (`type T = z.infer<typeof schema>`). Covers env vars, config files, HTTP responses, and LLM output — in TS with Zod and in Python with pydantic. Pairs with `templates/env.ts` and `templates/env.py`.
 
 ## Templates
 
@@ -77,6 +77,12 @@ Head-plus-tail truncator for tool output. Keeps the first N lines and last M lin
 
 ### `templates/env.ts`
 Single env-var boundary. All `process.env` reads happen here and nowhere else (the ESLint config enforces this). Zod schema is the source of truth for the `Env` type; invalid env fails loudly at startup with the exact field and reason. Pairs with `guides/zod-at-the-boundary.md`.
+
+### `templates/ruff.toml` + `templates/pyrightconfig.json`
+Drop-in ruff + pyright configs for AI-agent Python projects — the Python counterpart of the Biome + ESLint pair. Ruff owns formatting and fast syntactic rules; pyright (strict) owns type-aware analysis and catches hallucinated imports. See `guides/lint-rules-for-ai.md`.
+
+### `templates/env.py`, `templates/error_ids.py`, `templates/truncate_for_context.py`
+Python ports of `env.ts`, `errorIds.ts`, and `truncate-for-context.ts`: a pydantic-settings env boundary, a `StrEnum` error-ID registry + `AppError`, and the head+tail output truncator. The guides' Python sections explain each.
 
 **Usage:**
 ```bash

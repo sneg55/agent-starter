@@ -24,8 +24,8 @@ Ask these questions **one at a time** before taking any action:
 2. **Description** — one sentence describing what it does.
 3. **Tech stack** — language, framework, package manager (e.g. "TypeScript, Next.js, pnpm").
 4. **Optional components** — which would you like installed?
-   - Hooks (auto-enforce file size limits and codebase health checks at `~/.claude/hooks/`)
-   - Skills (commit, commit-push-pr, simplify, remember, dream, new-project at `~/.claude/skills/`)
+   - Hooks (auto-enforce file size limits, lint-on-save, silent-error and dangerous-command blocking, codebase health checks at `~/.claude/hooks/`)
+   - Skills (commit, commit-push-pr, simplify, remember, dream, new-project, reflect at `~/.claude/skills/`)
    - Both
    - Neither
 5. **Repo path** (only if hooks or skills selected) — what is the local path to the agent-starter repo? (e.g. `~/code/agent-starter`). If the answer to question 4 was "Neither", skip this question.
@@ -234,6 +234,27 @@ coverage/
 <!-- Add setup instructions here -->
 ```
 
+**Lint configs** — if the stack is TypeScript/JavaScript:
+
+```bash
+cp <repo-path>/templates/biome.json <project-name>/biome.json
+cp <repo-path>/templates/eslint.config.mjs <project-name>/eslint.config.mjs
+cd <project-name> && npm i -D @biomejs/biome eslint typescript-eslint eslint-plugin-import \
+  eslint-plugin-sonarjs eslint-plugin-security eslint-plugin-eslint-comments
+```
+
+If the stack is Python:
+
+```bash
+cp <repo-path>/templates/ruff.toml <project-name>/ruff.toml
+cp <repo-path>/templates/pyrightconfig.json <project-name>/pyrightconfig.json
+cd <project-name> && uv add --dev ruff pyright   # or: python -m pip install ruff pyright
+```
+
+(Requires the repo path from interview question 5; if the developer chose "Neither" for components, ask for the repo path now or skip lint configs.)
+
+See `guides/lint-rules-for-ai.md` for what the rules catch. Skip for other stacks.
+
 ### 4. Install hooks (if selected)
 
 Run the idempotent installer — it copies the hooks (and `lib/`) to
@@ -247,7 +268,7 @@ bash <repo-path>/install.sh
 
 Hook behavior (wired by default):
 - `check-file-size.sh` — runs after every Write/Edit. Blocks (exit 2) files over 300 lines; warns over 200 lines. Skips `.md`, `.json`, `.yaml`.
-- `lint-on-edit.sh` — Biome + ESLint on save for JS/TS; ruff for Python.
+- `lint-on-edit.sh` — Biome + ESLint on save for JS/TS; ruff check + format for Python.
 - `check-silent-errors.sh` — blocks writes that introduce swallowed exceptions.
 - `block-dangerous-commands.sh` — blocks force-push, `git reset --hard`, recursive rm on `/`/`~`, before they run.
 - `check-codebase-health.sh` — runs at session start. Reports files over 500 lines that need splitting. Silent when healthy.
@@ -312,6 +333,7 @@ Confirm each item before reporting done:
 - [ ] Project directory with feature-based structure (`src/features`, `src/services`, `src/utils`, `src/types`, `src/constants`, `src/schemas`, `src/entrypoints`, `src/migrations`, `tests/`, `docs/`, `scripts/`)
 - [ ] `CLAUDE.md` present with project name and description filled in
 - [ ] `.gitignore`, `.env.example`, and `README.md` present
+- [ ] Lint configs copied + deps installed — `biome.json` + `eslint.config.mjs` (TS/JS) or `ruff.toml` + `pyrightconfig.json` (Python); skipped for other stacks
 - [ ] Hooks installed to `~/.claude/hooks/` and configured in `settings.json` (if selected)
 - [ ] Skills installed to `~/.claude/skills/` (if selected)
 - [ ] `.harness/reflections/` created and `.harness/ledger.jsonl` added to `.gitignore`

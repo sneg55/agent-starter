@@ -25,6 +25,12 @@ if command -v ruff >/dev/null 2>&1; then
   printf 'x = 1\nprint(x)\n' > "$tmp/src/ok.py"
   ARGUMENTS="{\"file_path\":\"$tmp/src/ok.py\"}" bash "$HOOK" 2>/dev/null; rc=$?
   assert_eq 0 "$rc" "ruff passes clean file"
+
+  # Case 3: valid but badly formatted file → exit 0 and reformatted in place.
+  printf 'x=1\nprint(x)\n' > "$tmp/src/fmt.py"
+  ARGUMENTS="{\"file_path\":\"$tmp/src/fmt.py\"}" bash "$HOOK" 2>/dev/null; rc=$?
+  assert_eq 0 "$rc" "ruff format passes valid file"
+  assert_eq 'x = 1' "$(head -1 "$tmp/src/fmt.py")" "ruff format rewrote spacing"
   rm -rf "$tmp"
 else
   echo "  (ruff not installed — skipping ruff block/pass cases)"

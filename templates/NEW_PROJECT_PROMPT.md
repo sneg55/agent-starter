@@ -75,7 +75,7 @@ Create these rule files:
 
 Create appropriate config for the tech stack:
 - Package manager lockfile
-- Linter config with custom rules for architectural boundaries
+- Linter config with custom rules for architectural boundaries (Biome + ESLint for TS, ruff + pyright for Python)
 - Formatter config
 - TypeScript/language config with strict settings
 - .gitignore (include CLAUDE.local.md, env files, build output)
@@ -88,7 +88,7 @@ Apply these rules in all generated code:
 ### File size
 - Target 64% of files under 200 lines
 - When a responsibility grows past ~300 lines, extract to its own file
-- Split by concern: types.ts, constants.ts, validation.ts, utils.ts
+- Split by concern: types.ts, constants.ts, validation.ts, utils.ts (or types.py, constants.py, validation.py, utils.py)
 
 ### Naming
 - Files: PascalCase for classes/components, camelCase for utilities

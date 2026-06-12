@@ -76,9 +76,9 @@ chmod +x ~/.claude/hooks/*.sh ~/.claude/hooks/lib/*.sh
 - Biome handles format + fast syntactic rules with autofix; ESLint handles type-aware + plugin rules (import resolution, sonarjs, security).
 - Opt-in `tsc --noEmit` per project: `touch .claude/enable-typecheck-on-edit` in the project root.
 - No-ops silently when no `package.json` is present or when neither tool is installed.
-- **Python:** runs `ruff check --fix` on `.py` files when a ruff binary is available (`.venv/bin/ruff` or on PATH). No-ops when ruff or a project root (pyproject/setup.py/requirements/.git) is absent.
+- **Python:** runs `ruff check --fix`, then `ruff format`, on `.py` files when a ruff binary is available (`.venv/bin/ruff` or on PATH). No-ops when ruff or a project root (pyproject/setup.py/requirements/.git) is absent.
 
-Pairs with `templates/biome.json` + `templates/eslint.config.mjs`. See `guides/lint-rules-for-ai.md` for the rule rationale and split.
+Pairs with `templates/biome.json` + `templates/eslint.config.mjs` (TS) and `templates/ruff.toml` + `templates/pyrightconfig.json` (Python). See `guides/lint-rules-for-ai.md` for the rule rationale and split.
 
 Add to `settings.json`:
 

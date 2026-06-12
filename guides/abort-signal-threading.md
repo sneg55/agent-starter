@@ -121,3 +121,47 @@ Post-edit lint + a custom rule catches most misses:
 - Ctrl+C actually cancels. Timeouts actually fire. Obsoleted work actually stops.
 - The function signature documents cancellability. An agent reading `fn(url)` knows it's *not* cancellable; `fn(url, { signal })` knows it is.
 - No wedged subprocesses or zombie fetches accumulating between runs.
+
+## Python: asyncio cancellation
+
+The AbortSignal analog is task cancellation, and the same contract translates rule for rule.
+
+**1. Don't swallow `CancelledError`.** Since 3.8 it inherits from `BaseException` precisely so `except Exception` can't eat it — but `except BaseException` and bare `except:` still do (and ruff's `E722`/`BLE` flag those). If you intercept it for cleanup, always re-raise:
+
+```python
+# Bad — cancellation papered over; the task never actually stops.
+try:
+    return await fetch(url)
+except BaseException:
+    return None
+
+# Good — clean up, then propagate.
+try:
+    return await fetch(url)
+except asyncio.CancelledError:
+    release_resources()
+    raise
+```
+
+**2. Compose timeouts with `asyncio.timeout`** (3.11+). The `AbortSignal.any([outer, perCall])` pattern is nesting:
+
+```python
+async with asyncio.timeout(30):          # outer budget
+    async with asyncio.timeout(5):       # per-call timeout
+        await fetch(url)
+```
+
+**3. Cancellation only lands at `await` points.** Heavy synchronous work inside a coroutine blocks cancellation the same way un-threaded sync work defeats AbortSignal. Push CPU-bound work to `await asyncio.to_thread(...)`, or insert `await asyncio.sleep(0)` between chunks — the `throwIfAborted()` analog.
+
+**4. Subprocesses must die with the task** — same "cleanup on abort" rule:
+
+```python
+proc = await asyncio.create_subprocess_exec("rg", *args)
+try:
+    out, _ = await proc.communicate()
+except asyncio.CancelledError:
+    proc.terminate()
+    raise
+```
+
+**Enforcement:** the `ASYNC` rules in `templates/ruff.toml` catch blocking calls (`time.sleep`, sync `open`, sync `subprocess.run`) inside `async def` — the most common way agents accidentally make code uncancellable. If the project uses structured concurrency (`anyio`/`TaskGroup`), scoped cancellation comes for free; rules 1, 3, and 4 still apply inside each scope.

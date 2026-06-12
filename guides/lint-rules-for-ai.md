@@ -112,3 +112,46 @@ npm i -D @biomejs/biome eslint typescript-eslint eslint-plugin-import \
 ```
 
 Then wire in the post-edit hook: `hooks/lint-on-edit.sh` + settings in `hooks/README.md`. The hook runs Biome first (fast, autofix), then ESLint (type-aware).
+
+## Python: ruff + pyright
+
+Same split, different tools. Drop `templates/ruff.toml` and `templates/pyrightconfig.json` into any Python project scaffolded from this repo. Ruff plays the Biome role (formatting + fast syntactic rules, with autofix); pyright plays the ESLint role (type-aware analysis).
+
+- **Ruff owns:** formatting, undefined names and unused imports (`F`), the bugbear family incl. mutable default args (`B`), bare/blind excepts (`E722`, `BLE`), debug leftovers (`T10`, `T20`), commented-out code (`ERA`), blocking calls in `async def` (`ASYNC`), naive datetimes (`DTZ`), import hygiene (`I`, `TID`), security (`S`), cognitive complexity (`C90`), and unjustified suppressions (`PGH`, `RUF100`).
+- **Pyright owns:** strict type checking (the `reportUnknown*` family is the `no-unsafe-*` analog), `reportMissingImports` (hallucinated packages), `reportUnnecessaryTypeIgnoreComment` (stale suppressions).
+
+The post-edit hook (`hooks/lint-on-edit.sh`) runs `ruff check --fix` then `ruff format` on every `.py` write.
+
+### What LLMs actually get wrong in Python
+
+The TS failure modes, translated:
+
+| TS failure mode | Python equivalent | Caught by |
+|---|---|---|
+| Dropped `await`s | un-awaited coroutines; blocking calls inside `async def` | `ASYNC`, pyright `reportUnusedCoroutine` |
+| `any` escape hatch | blanket `# type: ignore`, `Any` sprawl, `cast()` abuse | `PGH003`, pyright strict |
+| Hallucinated modules | imports of packages not in `pyproject.toml` | pyright `reportMissingImports` |
+| Half-finished work | inconsistent/missing returns, commented-out code | `RET`, `ERA` |
+| Silent suppression | blanket or stale `# noqa` | `PGH004`, `RUF100` |
+| Debug leftovers | `print()`, `breakpoint()` | `T20`, `T10` |
+| Incoherent error handling | bare `except:`, `except Exception: pass`, `raise Exception(...)` | `E722`, `BLE001`, `TRY002` + `hooks/check-silent-errors.sh` |
+| Config sprawl | `os.environ[...]` read deep inside modules | convention: `templates/env.py` is the only reader |
+| Mutable default args | `def f(x, acc=[])` | `B006` |
+
+### Deliberately excluded (Python)
+
+- **Line-count caps** — same rationale as TS: they cause over-extraction. `C90` cognitive complexity at 15 instead.
+- **The full pylint (`PL`) set** — much of it is taste; the selected tiers cover the defect classes.
+- **pydocstyle (`D`)** — docstring style is review territory, not a guardrail.
+- **mypy** — pyright is faster, stricter by default, and what most editors run. Two type checkers disagree with each other more than they catch for each other.
+
+### Install (Python)
+
+```bash
+cp <repo>/templates/ruff.toml <project>/ruff.toml
+cp <repo>/templates/pyrightconfig.json <project>/pyrightconfig.json
+cd <project>
+uv add --dev ruff pyright   # or: python -m pip install ruff pyright
+```
+
+Then the same Tier 7 logic applies unchanged: the post-edit hook is where the leverage lives. Ruff errors come back on stderr with exit 2 and the agent self-corrects next turn.

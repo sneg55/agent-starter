@@ -111,3 +111,25 @@ Don't pre-split. An empty `security.ts` is worse than an inline check — it sig
 - **Small diffs.** Prompt tweaks touch one file. Schema changes touch one file.
 - **Safe refactors.** Moving `execute.ts` behind a queue doesn't ripple into `prompt.ts`.
 - **No cycles.** The `toolName.ts` trick alone eliminates a whole class of import-cycle bugs.
+
+## Python layout
+
+Identical slots, snake_case modules:
+
+```
+src/tools/my_tool/
+├── __init__.py        # Barrel export — only what callers need
+├── handler.py         # The thin orchestrator (MyTool.ts equivalent)
+├── tool_name.py       # Just the name constant — leaf module, zero imports
+├── schema.py          # Pydantic input model (types come from it)
+├── prompt.py          # The instruction string the LLM sees
+├── validation.py      # Input checks beyond schema
+├── permissions.py     # "Is this invocation allowed?"
+├── security.py        # "Is this invocation safe?" (different from allowed)
+├── execute.py         # The actual side-effectful work
+├── result.py          # Tagged-union result type + formatter
+├── constants.py       # Timeouts, limits, magic strings
+└── errors.py          # Tool-specific error IDs + classes
+```
+
+The same rules apply: `tool_name.py` is a leaf module with zero imports (breaks the cycle through logging/telemetry), `schema.py`'s pydantic model is the single source of the input type, and `execute.py` is the only module that touches the outside world. Tests live in `tests/tools/my_tool/`, one file per slot; only the handler test needs fakes.
