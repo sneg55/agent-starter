@@ -140,6 +140,87 @@ Project-specific, worth adding:
 
 Turn this off in `src/invariants/**` if you have one.
 
+## Python: tagged unions + `match`
+
+Same shape with frozen dataclasses and a `Literal` discriminant. Stdlib only — don't add a library here either.
+
+```python
+# src/types/result.py
+from dataclasses import dataclass
+from typing import Generic, Literal, TypeAlias, TypeVar
+
+T = TypeVar("T")
+E = TypeVar("E")
+
+@dataclass(frozen=True, slots=True)
+class Ok(Generic[T]):
+    value: T
+    ok: Literal[True] = True
+
+@dataclass(frozen=True, slots=True)
+class Err(Generic[E]):
+    error: E
+    ok: Literal[False] = False
+
+Result: TypeAlias = Ok[T] | Err[E]
+```
+
+Usage:
+
+```python
+from app.types.result import Err, Ok, Result
+from app.error_ids import AppError, ErrorIds
+
+def read_config(path: str) -> Result[Config, AppError]:
+    try:
+        raw = json.loads(Path(path).read_text())
+    except (OSError, json.JSONDecodeError) as e:
+        return Err(AppError(ErrorIds.CFG_INVALID_JSON, "config read failed",
+                            {"path": path, "cause": str(e)}))
+    try:
+        return Ok(Config.model_validate(raw))
+    except ValidationError as e:
+        return Err(AppError(ErrorIds.CFG_SCHEMA_FAIL, "invalid config",
+                            {"errors": e.errors()}))
+```
+
+Caller — `if` narrowing works off the `ok` literal exactly like TS, and `match` narrows structurally:
+
+```python
+r = read_config(path)
+if not r.ok:
+    log.error(r.error.to_log_line())
+    return r                    # propagate the same shape outward
+use(r.value)
+
+# or
+match read_config(path):
+    case Ok(value=cfg):
+        use(cfg)
+    case Err(error=e):
+        log.error(e.to_log_line())
+```
+
+Exhaustiveness comes from pyright + `assert_never` — the `switch-exhaustiveness-check` analog:
+
+```python
+from typing import assert_never
+
+match r.error.kind:
+    case "not_found":
+        retry()
+    case "permission":
+        abort(r.error)
+    case "io":
+        log(r.error)
+    case _ as unreachable:
+        assert_never(unreachable)
+```
+
+Adding a fourth `kind` makes `assert_never` a type error at every call site under pyright strict. Same feature, same place.
+
+The "why not throw" trade reads slightly differently in Python — exceptions are idiomatic and `ValidationError`/`OSError` will exist regardless. The rule that holds: **catch them at the boundary, convert to `Result`, and keep raises for programmer errors** (invariant violations, unreachable branches). Operational failures cross function boundaries as values.
+
 ## Cross-references
 
 - `guides/error-id-registry.md` — the `Err` half of `Result<Ok, Err>` should be `AppError` with an `ErrorId`.
