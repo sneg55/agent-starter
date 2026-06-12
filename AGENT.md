@@ -2,6 +2,8 @@
 
 This repo contains patterns for bootstrapping AI-friendly projects. Follow these instructions to scaffold a complete new project for the developer.
 
+> Scaffolding a **new** project. For applying these patterns to an **existing** codebase, see `ADOPT.md`.
+
 ## Step 1: Interview the Developer
 
 Ask these questions **one at a time** before taking any action:
@@ -11,7 +13,7 @@ Ask these questions **one at a time** before taking any action:
 3. **Tech stack** — language, framework, package manager (e.g. "TypeScript, Next.js, pnpm").
 4. **Optional components** — which would you like installed?
    - Hooks (auto-enforce file size limits, lint-on-save, silent-error and dangerous-command blocking, codebase health checks at `~/.claude/hooks/`)
-   - Skills (commit, commit-push-pr, simplify, remember, dream, new-project, reflect at `~/.claude/skills/`)
+   - Skills (commit, commit-push-pr, simplify, remember, dream, new-project, adopt-project, reflect at `~/.claude/skills/`)
    - Both
    - Neither
 5. **Repo path** (only if hooks or skills selected) — what is the local path to the agent-starter repo? (e.g. `~/code/agent-starter`). If the answer to question 4 was "Neither", skip this question.
@@ -148,6 +150,7 @@ cp -r <repo-path>/skills/remember ~/.claude/skills/
 cp -r <repo-path>/skills/dream ~/.claude/skills/
 # new-project skill is included in this repo at skills/new-project/
 cp -r <repo-path>/skills/new-project ~/.claude/skills/
+cp -r <repo-path>/skills/adopt-project ~/.claude/skills/
 cp -r <repo-path>/skills/reflect ~/.claude/skills/
 ```
 

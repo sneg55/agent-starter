@@ -22,6 +22,8 @@ npx skills add sneg55/agent-starter -a claude-code -g
 
 Then: `/new-project`
 
+For an **existing** project, say **"read this repo and apply it to my project"** — the agent reads `ADOPT.md` and runs an audit-first, opt-in adoption (nothing overwritten, everything on a branch). Or install the skills the same way and run `/adopt-project`.
+
 To install just the hooks (with their `settings.json` wiring merged idempotently via jq):
 
 ```bash
@@ -121,6 +123,9 @@ Per-project self-improvement — reads the `.harness` ledger and `feedback` memo
 
 ### /new-project
 Full project bootstrap — interviews the developer (name, description, stack, components), then scaffolds directory structure, CLAUDE.md, config files, hooks, skills, and first commit. Mirrors `AGENT.md`.
+
+### /adopt-project
+Apply agent-starter to an existing codebase — audits what's already there (lint, CLAUDE.md, hooks, tests), proposes components grouped by invasiveness, and applies only what you approve. Mirrors `ADOPT.md`.
 
 ## Self-Improvement Loop
 

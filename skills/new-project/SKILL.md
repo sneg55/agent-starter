@@ -16,6 +16,8 @@ allowed-tools:
 
 Use when starting a new project from scratch. Scaffolds a complete AI-friendly project following the agent-starter patterns: feature-based directory structure, CLAUDE.md with memory taxonomy, config files, optional hooks and skills, first commit.
 
+For existing projects, use `/adopt-project` instead.
+
 ## Phase 1: Interview
 
 Ask these questions **one at a time** before taking any action:
@@ -25,7 +27,7 @@ Ask these questions **one at a time** before taking any action:
 3. **Tech stack** — language, framework, package manager (e.g. "TypeScript, Next.js, pnpm").
 4. **Optional components** — which would you like installed?
    - Hooks (auto-enforce file size limits, lint-on-save, silent-error and dangerous-command blocking, codebase health checks at `~/.claude/hooks/`)
-   - Skills (commit, commit-push-pr, simplify, remember, dream, new-project, reflect at `~/.claude/skills/`)
+   - Skills (commit, commit-push-pr, simplify, remember, dream, new-project, adopt-project, reflect at `~/.claude/skills/`)
    - Both
    - Neither
 5. **Repo path** (only if hooks or skills selected) — what is the local path to the agent-starter repo? (e.g. `~/code/agent-starter`). If the answer to question 4 was "Neither", skip this question.
@@ -286,6 +288,7 @@ cp -r <repo-path>/skills/remember ~/.claude/skills/
 cp -r <repo-path>/skills/dream ~/.claude/skills/
 # new-project skill is included in this repo at skills/new-project/
 cp -r <repo-path>/skills/new-project ~/.claude/skills/
+cp -r <repo-path>/skills/adopt-project ~/.claude/skills/
 cp -r <repo-path>/skills/reflect ~/.claude/skills/
 ```
 
@@ -296,6 +299,7 @@ Installed skills:
 - `/remember` — review auto-memory and promote to CLAUDE.md or CLAUDE.local.md
 - `/dream` — memory consolidation: merge, prune, re-index memory files
 - `/new-project` — this skill (bootstrap a new project)
+- `/adopt-project` — apply these patterns to an existing codebase
 - `/reflect` — read ledger, cluster recurring mistakes, propose improvements
 
 ### 6. Initialize the self-improvement ledger
