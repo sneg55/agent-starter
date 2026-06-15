@@ -1,6 +1,6 @@
 # Discriminated-Union Tool Results
 
-Every function that can fail returns a `Result` — a discriminated union — instead of throwing. Callers `switch` on the discriminant. The compiler enforces exhaustiveness.
+Every function that can fail returns a `Result` - a discriminated union - instead of throwing. Callers `switch` on the discriminant. The compiler enforces exhaustiveness.
 
 ## Why
 
@@ -54,10 +54,10 @@ use(r.value)
 ## Why not throw
 
 - **Throws aren't in the signature.** `readConfig(p): Promise<Config>` lies about its failure modes. `Result<Config>` doesn't.
-- **Throws break parallelism.** `Promise.all([a(), b(), c()])` rejects on the first throw and abandons the other results. `Promise.all([a(), b(), c()])` with `Result`s returns every outcome — the aggregator decides policy.
+- **Throws break parallelism.** `Promise.all([a(), b(), c()])` rejects on the first throw and abandons the other results. `Promise.all([a(), b(), c()])` with `Result`s returns every outcome - the aggregator decides policy.
 - **Agents skip `try/catch`.** LLMs reliably forget to wrap a call that can throw. They don't forget to check `r.ok` because the compiler makes them.
 
-Reserve throws for **programmer errors** (invariant violations, unreachable branches). Operational failures — bad input, missing file, network timeout — always return `Result`.
+Reserve throws for **programmer errors** (invariant violations, unreachable branches). Operational failures - bad input, missing file, network timeout - always return `Result`.
 
 ## Discriminant is always `ok: true | false`
 
@@ -120,15 +120,15 @@ Don't add a library. These three are enough.
 
 Already enabled in `templates/eslint.config.mjs`:
 
-- `@typescript-eslint/switch-exhaustiveness-check` — catches missed variants.
-- `@typescript-eslint/only-throw-error` — no throwing strings/objects.
-- `@typescript-eslint/no-unnecessary-condition` — catches `if (r.ok === true)`–style redundancy.
+- `@typescript-eslint/switch-exhaustiveness-check` - catches missed variants.
+- `@typescript-eslint/only-throw-error` - no throwing strings/objects.
+- `@typescript-eslint/no-unnecessary-condition` - catches `if (r.ok === true)`–style redundancy.
 
 Project-specific, worth adding:
 
 ```js
 // Disallow bare `throw` inside async functions that look like operations
-// rather than invariant checks. Heuristic — tune per codebase.
+// rather than invariant checks. Heuristic - tune per codebase.
 'no-restricted-syntax': [
   'error',
   {
@@ -142,7 +142,7 @@ Turn this off in `src/invariants/**` if you have one.
 
 ## Python: tagged unions + `match`
 
-Same shape with frozen dataclasses and a `Literal` discriminant. Stdlib only — don't add a library here either.
+Same shape with frozen dataclasses and a `Literal` discriminant. Stdlib only - don't add a library here either.
 
 ```python
 # src/types/result.py
@@ -184,7 +184,7 @@ def read_config(path: str) -> Result[Config, AppError]:
                             {"errors": e.errors()}))
 ```
 
-Caller — `if` narrowing works off the `ok` literal exactly like TS, and `match` narrows structurally:
+Caller - `if` narrowing works off the `ok` literal exactly like TS, and `match` narrows structurally:
 
 ```python
 r = read_config(path)
@@ -201,7 +201,7 @@ match read_config(path):
         log.error(e.to_log_line())
 ```
 
-Exhaustiveness comes from pyright + `assert_never` — the `switch-exhaustiveness-check` analog:
+Exhaustiveness comes from pyright + `assert_never` - the `switch-exhaustiveness-check` analog:
 
 ```python
 from typing import assert_never
@@ -219,9 +219,9 @@ match r.error.kind:
 
 Adding a fourth `kind` makes `assert_never` a type error at every call site under pyright strict. Same feature, same place.
 
-The "why not throw" trade reads slightly differently in Python — exceptions are idiomatic and `ValidationError`/`OSError` will exist regardless. The rule that holds: **catch them at the boundary, convert to `Result`, and keep raises for programmer errors** (invariant violations, unreachable branches). Operational failures cross function boundaries as values.
+The "why not throw" trade reads slightly differently in Python - exceptions are idiomatic and `ValidationError`/`OSError` will exist regardless. The rule that holds: **catch them at the boundary, convert to `Result`, and keep raises for programmer errors** (invariant violations, unreachable branches). Operational failures cross function boundaries as values.
 
 ## Cross-references
 
-- `guides/error-id-registry.md` — the `Err` half of `Result<Ok, Err>` should be `AppError` with an `ErrorId`.
-- `guides/tool-authoring-pattern.md` — every tool handler returns `Result`.
+- `guides/error-id-registry.md` - the `Err` half of `Result<Ok, Err>` should be `AppError` with an `ErrorId`.
+- `guides/tool-authoring-pattern.md` - every tool handler returns `Result`.

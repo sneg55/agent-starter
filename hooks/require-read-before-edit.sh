@@ -1,6 +1,6 @@
 #!/bin/bash
 # Claude Code hook: block Edit/Write on files the agent hasn't read this session.
-# PreToolUse on Edit|Write — exit 2 blocks with stderr, exit 0 allows.
+# PreToolUse on Edit|Write - exit 2 blocks with stderr, exit 0 allows.
 #
 # Why: LLMs routinely edit files based on guesses rather than the current
 # contents. Forcing a Read before Edit catches hallucinated edits before
@@ -26,7 +26,7 @@ set -u
 FILE_PATH=$(echo "${ARGUMENTS:-}" | jq -r '.file_path // .path // empty' 2>/dev/null)
 [ -z "$FILE_PATH" ] && exit 0
 
-# New files are fine — you can't read something that doesn't exist.
+# New files are fine - you can't read something that doesn't exist.
 [ ! -f "$FILE_PATH" ] && exit 0
 
 SESSION_DIR="${CLAUDE_SESSION_DIR:-$HOME/.claude/session}"

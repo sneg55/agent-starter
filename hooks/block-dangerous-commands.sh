@@ -1,6 +1,6 @@
 #!/bin/bash
 # Claude Code hook: block destructive shell commands before they run.
-# PreToolUse on Bash — exit 2 blocks with stderr, exit 0 allows.
+# PreToolUse on Bash - exit 2 blocks with stderr, exit 0 allows.
 #
 # Blocks:
 #   - git push --force / -f            (use --force-with-lease instead)
@@ -27,11 +27,11 @@ check() { echo "$CMD" | grep -qE "$1"; }
 
 REASON=""
 if check 'git[[:space:]]+push[[:space:]]+[^|;&]*--force([[:space:]]|$)'; then
-  REASON="'git push --force' rewrites remote history — use --force-with-lease"
+  REASON="'git push --force' rewrites remote history - use --force-with-lease"
 elif check 'git[[:space:]]+push[[:space:]]+([^|;&]*[[:space:]])?-f([[:space:]]|$)'; then
-  REASON="'git push -f' rewrites remote history — use --force-with-lease"
+  REASON="'git push -f' rewrites remote history - use --force-with-lease"
 elif check 'git[[:space:]]+reset[[:space:]]+[^|;&]*--(hard|merge)'; then
-  REASON="'git reset --hard/--merge' destroys uncommitted work — stash first, or restore specific paths"
+  REASON="'git reset --hard/--merge' destroys uncommitted work - stash first, or restore specific paths"
 elif check 'git[[:space:]]+clean[[:space:]]+[^|;&]*-[A-Za-z]*f'; then
   REASON="'git clean -f' permanently deletes untracked files"
 elif check 'git[[:space:]]+checkout[[:space:]]+--[[:space:]]+\.([[:space:]]|$)'; then

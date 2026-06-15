@@ -6,7 +6,7 @@ Hooks let you run shell commands, LLM prompts, verification agents, or HTTP webh
 
 ## Hook Types
 
-### 1. command — Run a shell command
+### 1. command - Run a shell command
 ```json
 {
   "type": "command",
@@ -19,7 +19,7 @@ Hooks let you run shell commands, LLM prompts, verification agents, or HTTP webh
 }
 ```
 
-### 2. prompt — Evaluate with an LLM
+### 2. prompt - Evaluate with an LLM
 ```json
 {
   "type": "prompt",
@@ -29,7 +29,7 @@ Hooks let you run shell commands, LLM prompts, verification agents, or HTTP webh
 }
 ```
 
-### 3. agent — Spawn a sub-agent with tools
+### 3. agent - Spawn a sub-agent with tools
 ```json
 {
   "type": "agent",
@@ -39,7 +39,7 @@ Hooks let you run shell commands, LLM prompts, verification agents, or HTTP webh
 }
 ```
 
-### 4. http — POST to a webhook URL
+### 4. http - POST to a webhook URL
 ```json
 {
   "type": "http",
@@ -59,7 +59,7 @@ Hooks let you run shell commands, LLM prompts, verification agents, or HTTP webh
 ### Tool Events
 | Event | Matcher Field | Description |
 |-------|---------------|-------------|
-| `PreToolUse` | tool_name | Before tool execution — can block it |
+| `PreToolUse` | tool_name | Before tool execution - can block it |
 | `PostToolUse` | tool_name | After tool execution |
 | `PostToolUseFailure` | tool_name | After tool execution fails |
 | `PermissionDenied` | tool_name | After auto mode denies a tool |
@@ -70,8 +70,8 @@ Hooks let you run shell commands, LLM prompts, verification agents, or HTTP webh
 |-------|---------------|-------------|
 | `SessionStart` | source (startup, resume, clear, compact) | New session starts |
 | `SessionEnd` | reason (clear, logout, prompt_input_exit) | Session ending |
-| `UserPromptSubmit` | — | When user sends a message |
-| `Stop` | — | Before Claude finishes responding |
+| `UserPromptSubmit` | - | When user sends a message |
+| `Stop` | - | Before Claude finishes responding |
 | `StopFailure` | error (rate_limit, auth, billing, etc.) | Turn ends due to API error |
 
 ### Agent Events
@@ -91,13 +91,13 @@ Hooks let you run shell commands, LLM prompts, verification agents, or HTTP webh
 |-------|---------------|-------------|
 | `FileChanged` | filename pattern | Watched file changes |
 | `ConfigChange` | source (user/project/local/policy/skills) | Config files change |
-| `CwdChanged` | — | Working directory changes |
+| `CwdChanged` | - | Working directory changes |
 
 ### Task Events
 | Event | Matcher Field | Description |
 |-------|---------------|-------------|
-| `TaskCreated` | — | Task being created |
-| `TaskCompleted` | — | Task being completed |
+| `TaskCreated` | - | Task being created |
+| `TaskCompleted` | - | Task being completed |
 
 ### Other Events
 | Event | Matcher Field | Description |
@@ -107,9 +107,9 @@ Hooks let you run shell commands, LLM prompts, verification agents, or HTTP webh
 | `Elicitation` | mcp_server_name | MCP server requests input |
 | `ElicitationResult` | mcp_server_name | After user responds to MCP |
 | `InstructionsLoaded` | load_reason | Instruction file loaded |
-| `WorktreeCreate` | — | Worktree created |
-| `WorktreeRemove` | — | Worktree removed |
-| `TeammateIdle` | — | Teammate about to go idle |
+| `WorktreeCreate` | - | Worktree created |
+| `WorktreeRemove` | - | Worktree removed |
+| `TeammateIdle` | - | Teammate about to go idle |
 
 ---
 
@@ -117,9 +117,9 @@ Hooks let you run shell commands, LLM prompts, verification agents, or HTTP webh
 
 | Exit Code | Meaning |
 |-----------|---------|
-| 0 | Success — proceed normally |
-| 2 | **BLOCK** — stderr shown to Claude, action stopped |
-| Other | Warning — stderr shown to user only, doesn't block |
+| 0 | Success - proceed normally |
+| 2 | **BLOCK** - stderr shown to Claude, action stopped |
+| Other | Warning - stderr shown to user only, doesn't block |
 
 ---
 
@@ -144,15 +144,15 @@ Hooks let you run shell commands, LLM prompts, verification agents, or HTTP webh
 ```
 
 ### Common Fields (all hook types)
-- `if` — filter condition using permission syntax (e.g., `"Bash(git *)"`, `"Write(*.ts)"`)
-- `timeout` — max seconds
-- `statusMessage` — shown during execution
-- `once` — remove hook after first execution
+- `if` - filter condition using permission syntax (e.g., `"Bash(git *)"`, `"Write(*.ts)"`)
+- `timeout` - max seconds
+- `statusMessage` - shown during execution
+- `once` - remove hook after first execution
 
 ### Special Variables
-- `$ARGUMENTS` — full hook input JSON
-- `$ARGUMENTS[0]`, `$0` — indexed access to arguments
-- `$ENV_VAR` — environment variable interpolation (http headers only, must be in allowedEnvVars)
+- `$ARGUMENTS` - full hook input JSON
+- `$ARGUMENTS[0]`, `$0` - indexed access to arguments
+- `$ENV_VAR` - environment variable interpolation (http headers only, must be in allowedEnvVars)
 
 ---
 
@@ -418,7 +418,7 @@ Pair with a CLAUDE.md rule to also fix existing silent errors when touching old 
 
 ```markdown
 ### Development Rules
-- **No silent errors** — when editing any file, also fix existing silent error
+- **No silent errors** - when editing any file, also fix existing silent error
   patterns (bare `except:`, `except: pass`, empty `catch {}`). Every exception
   handler must log with context and either re-raise or return a sentinel.
   Add `# silent-ok` only for genuinely intentional cases.

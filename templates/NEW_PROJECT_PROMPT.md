@@ -9,7 +9,7 @@ Paste this into Claude Code when starting a new project. Replace placeholders in
 ```
 I'm starting a new project called {{PROJECT_NAME}}.
 
-{{BRIEF DESCRIPTION — e.g., "A TypeScript API for token vesting schedules" or "A Python CLI for DeFi portfolio tracking"}}
+{{BRIEF DESCRIPTION - e.g., "A TypeScript API for token vesting schedules" or "A Python CLI for DeFi portfolio tracking"}}
 
 Tech stack: {{e.g., TypeScript/Node, Python/FastAPI, Rust, Go, etc.}}
 
@@ -20,7 +20,7 @@ Set up the full project scaffolding following these principles:
 Create a structure where each feature lives in its own directory with ALL related files (implementation, types, constants, validation, tests). Use this layout:
 
 src/
-├── features/          # Feature modules — each gets its own directory
+├── features/          # Feature modules - each gets its own directory
 ├── services/          # Shared business logic by domain
 ├── utils/             # Truly shared utilities
 ├── types/             # Shared type definitions (break import cycles here)
@@ -33,7 +33,7 @@ src/
 
 Create these files:
 
-### CLAUDE.md (commit this — project conventions for all contributors)
+### CLAUDE.md (commit this - project conventions for all contributors)
 Include:
 - Project description and architecture overview
 - Build/test/lint commands
@@ -41,15 +41,15 @@ Include:
 - Git workflow (branch naming, commit format, PR process)
 - What NOT to do
 
-### CLAUDE.local.md (gitignore this — personal preferences)
+### CLAUDE.local.md (gitignore this - personal preferences)
 Just create it empty with a comment header.
 
 ### .claude/rules/ (modular instruction files)
 Create these rule files:
-- testing.md — testing philosophy, frameworks, patterns
-- git-workflow.md — branch naming, commit messages, PR conventions
-- code-style.md — formatting, naming, patterns to follow/avoid
-- security.md — secrets handling, input validation, dependencies
+- testing.md - testing philosophy, frameworks, patterns
+- git-workflow.md - branch naming, commit messages, PR conventions
+- code-style.md - formatting, naming, patterns to follow/avoid
+- security.md - secrets handling, input validation, dependencies
 
 ## 3. Foundation Files (create from day one)
 
@@ -59,11 +59,11 @@ Create these rule files:
 - Semantic boolean helpers: isNotFound(), isAbort(), isTimeout()
 
 ### Constants (constants/)
-- errorIds — sequential numbered error codes with "Next ID: N" comment
-- messages — all user-facing strings as named constants
+- errorIds - sequential numbered error codes with "Next ID: N" comment
+- messages - all user-facing strings as named constants
 
 ### Environment (utils/env)
-- Centralized env var access — never raw process.env/os.environ
+- Centralized env var access - never raw process.env/os.environ
 - Validated with defaults and bounds
 - isEnvTruthy / isEnvDefined helpers
 
@@ -131,5 +131,5 @@ Create a README with:
 
 ---
 
-Now scaffold everything. Create real files with real content — not just empty placeholders. Error utilities should have working implementations. Constants should have initial values. CLAUDE.md should have comprehensive instructions. Make it production-ready from commit zero.
+Now scaffold everything. Create real files with real content - not just empty placeholders. Error utilities should have working implementations. Constants should have initial values. CLAUDE.md should have comprehensive instructions. Make it production-ready from commit zero.
 ```

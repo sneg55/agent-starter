@@ -1,6 +1,6 @@
 #!/bin/bash
 # Claude Code hook: lint + typecheck files the agent just wrote.
-# PostToolUse on Write|Edit — exit 2 to block with stderr, exit 0 to pass.
+# PostToolUse on Write|Edit - exit 2 to block with stderr, exit 0 to pass.
 #
 # Philosophy: rules only shape agent behavior if the agent sees failures.
 # JS/TS: runs Biome (format + fast rules, with --write), then ESLint

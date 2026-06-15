@@ -1,7 +1,7 @@
 #!/bin/bash
 # Claude Code hook: log every Read to a session-scoped file so
 # require-read-before-edit.sh can verify a read happened before an edit.
-# PostToolUse on Read — always exit 0 (this hook never blocks).
+# PostToolUse on Read - always exit 0 (this hook never blocks).
 #
 # Install: copy to ~/.claude/hooks/, chmod +x, wire in settings.json (see README).
 

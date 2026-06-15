@@ -1,6 +1,6 @@
 #!/bin/bash
 # Claude Code hook: codebase health check on session start
-# SessionStart — reports file size distribution and flags violations
+# SessionStart - reports file size distribution and flags violations
 #
 # Install: add to settings.json under SessionStart event
 

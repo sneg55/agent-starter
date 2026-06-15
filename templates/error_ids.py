@@ -1,7 +1,7 @@
 """Central error ID registry. See guides/error-id-registry.md.
 
 Rules:
-  1. Never reuse a retired ID — mark it `# retired` and leave it in place.
+  1. Never reuse a retired ID - mark it `# retired` and leave it in place.
   2. One ID per distinct cause, not per raise site.
   3. Numbers are stable; append, never renumber.
   4. Domain prefix (3-5 letters) is required.

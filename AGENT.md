@@ -8,15 +8,15 @@ This repo contains patterns for bootstrapping AI-friendly projects. Follow these
 
 Ask these questions **one at a time** before taking any action:
 
-1. **Project name** — what is the name of the project?
-2. **Description** — one sentence describing what it does.
-3. **Tech stack** — language, framework, package manager (e.g. "TypeScript, Next.js, pnpm").
-4. **Optional components** — which would you like installed?
+1. **Project name** - what is the name of the project?
+2. **Description** - one sentence describing what it does.
+3. **Tech stack** - language, framework, package manager (e.g. "TypeScript, Next.js, pnpm").
+4. **Optional components** - which would you like installed?
    - Hooks (auto-enforce file size limits, lint-on-save, silent-error and dangerous-command blocking, codebase health checks at `~/.claude/hooks/`)
    - Skills (commit, commit-push-pr, simplify, remember, dream, new-project, adopt-project, reflect at `~/.claude/skills/`)
    - Both
    - Neither
-5. **Repo path** (only if hooks or skills selected) — what is the local path to the agent-starter repo? (e.g. `~/code/agent-starter`). If the answer to question 4 was "Neither", skip this question.
+5. **Repo path** (only if hooks or skills selected) - what is the local path to the agent-starter repo? (e.g. `~/code/agent-starter`). If the answer to question 4 was "Neither", skip this question.
 
 Do not proceed past this step until you have all answers.
 
@@ -26,14 +26,14 @@ Execute these steps in order. Read the referenced files in this repo for full de
 
 ### 1. Create directory structure
 
-Reference: `guides/large-codebase-best-practices.md` — Section 1 (Feature-based directory structure)
+Reference: `guides/large-codebase-best-practices.md` - Section 1 (Feature-based directory structure)
 
 Create the project root and subdirectories:
 
 ```
 <project-name>/
 ├── src/
-│   ├── features/      # feature modules — each gets its own directory
+│   ├── features/      # feature modules - each gets its own directory
 │   ├── services/      # shared business logic by domain
 │   ├── utils/         # truly shared utilities
 │   ├── types/         # shared type definitions (break import cycles here)
@@ -73,7 +73,7 @@ coverage/
 
 **`.env.example`:**
 ```
-# Required environment variables — copy to .env and fill in values
+# Required environment variables - copy to .env and fill in values
 ```
 
 **`README.md`:**
@@ -110,13 +110,13 @@ cd <project-name>
 uv add --dev ruff pyright   # or: python -m pip install ruff pyright
 ```
 
-For Python projects, also offer the Python foundation templates: `templates/env.py` (env boundary), `templates/error_ids.py` (error registry), `templates/truncate_for_context.py` (output truncation) — copy into `src/utils/` / `src/constants/` per the directory layout.
+For Python projects, also offer the Python foundation templates: `templates/env.py` (env boundary), `templates/error_ids.py` (error registry), `templates/truncate_for_context.py` (output truncation) - copy into `src/utils/` / `src/constants/` per the directory layout.
 
 Skip this step for other stacks (Rust, Go, etc.).
 
 ### 5. Install hooks (if selected)
 
-Run the idempotent installer — it copies the hooks (and `lib/`) to
+Run the idempotent installer - it copies the hooks (and `lib/`) to
 `~/.claude/hooks/`, stamps the installed version, and merges the hook wiring
 into `~/.claude/settings.json` with jq. Existing entries are preserved and
 re-running never duplicates anything, so there is no hand-editing of JSON:
@@ -126,11 +126,11 @@ bash <repo-path>/install.sh
 ```
 
 Hooks wired by default:
-- `check-file-size.sh` — block files >300 lines (PostToolUse:Write|Edit)
-- `check-codebase-health.sh` — session-start health report (SessionStart)
-- `lint-on-edit.sh` — Biome + ESLint on save; ruff check + format for Python (PostToolUse:Write|Edit)
-- `check-silent-errors.sh` — block swallowed exceptions (PostToolUse:Write|Edit)
-- `block-dangerous-commands.sh` — block force-push, `reset --hard`, recursive rm on `/`/`~` (PreToolUse:Bash)
+- `check-file-size.sh` - block files >300 lines (PostToolUse:Write|Edit)
+- `check-codebase-health.sh` - session-start health report (SessionStart)
+- `lint-on-edit.sh` - Biome + ESLint on save; ruff check + format for Python (PostToolUse:Write|Edit)
+- `check-silent-errors.sh` - block swallowed exceptions (PostToolUse:Write|Edit)
+- `block-dangerous-commands.sh` - block force-push, `reset --hard`, recursive rm on `/`/`~` (PreToolUse:Bash)
 
 Optional: add `--with-read-guard` to also wire `track-reads.sh` +
 `require-read-before-edit.sh` (force Read before Edit). Recent Claude Code
@@ -192,7 +192,7 @@ Confirm each item before reporting done:
 - [ ] Project directory with feature-based structure (`src/features`, `src/services`, `src/utils`, `src/types`, `src/constants`, `src/schemas`, `src/entrypoints`, `src/migrations`, `tests/`, `docs/`, `scripts/`)
 - [ ] `CLAUDE.md` present with project name and description filled in
 - [ ] `.gitignore`, `.env.example`, and `README.md` present
-- [ ] Lint configs copied + deps installed — `biome.json` + `eslint.config.mjs` (TS/JS) or `ruff.toml` + `pyrightconfig.json` (Python); skipped for other stacks
+- [ ] Lint configs copied + deps installed - `biome.json` + `eslint.config.mjs` (TS/JS) or `ruff.toml` + `pyrightconfig.json` (Python); skipped for other stacks
 - [ ] Hooks installed to `~/.claude/hooks/` and configured in `settings.json` (if selected)
 - [ ] Skills installed to `~/.claude/skills/` (if selected)
 - [ ] `.harness/reflections/` created and `.harness/ledger.jsonl` added to `.gitignore`

@@ -1,4 +1,4 @@
-// ESLint flat config — trimmed companion to templates/biome.json.
+// ESLint flat config - trimmed companion to templates/biome.json.
 // Biome handles fast syntactic rules + formatting (see biome.json).
 // ESLint keeps ONLY the rules Biome can't do: type-aware checks and
 // plugin-specific checks (import resolution, sonarjs complexity, security).
@@ -36,7 +36,7 @@ export default tseslint.config(
     },
     rules: {
       // ── Tier 1: Type-aware correctness (Biome cannot do these) ─────────────
-      // Async bugs — the highest-value AI guardrails.
+      // Async bugs - the highest-value AI guardrails.
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
       '@typescript-eslint/require-await': 'error',
@@ -59,14 +59,14 @@ export default tseslint.config(
       '@typescript-eslint/prefer-nullish-coalescing': 'error',
       '@typescript-eslint/prefer-readonly': 'error',
 
-      // ── Tier 2: Imports (catches hallucinated modules — Biome can't resolve) ─
+      // ── Tier 2: Imports (catches hallucinated modules - Biome can't resolve) ─
       'import/no-unresolved': 'error',
       'import/no-cycle': ['error', { maxDepth: 10 }],
       'import/no-self-import': 'error',
       'import/no-extraneous-dependencies': 'error',
       'import/first': 'error',
       'import/newline-after-import': 'error',
-      // Deep relative paths — style.noRestrictedImports in Biome covers package names,
+      // Deep relative paths - style.noRestrictedImports in Biome covers package names,
       // but pattern matching on relative paths is ESLint-only.
       'no-restricted-imports': ['error', { patterns: ['../../../*'] }],
 
@@ -87,7 +87,7 @@ export default tseslint.config(
       'eslint-comments/no-unlimited-disable': 'error',
       'eslint-comments/no-unused-disable': 'error',
 
-      // Discriminated-union Result pattern — see guides/discriminated-union-results.md
+      // Discriminated-union Result pattern - see guides/discriminated-union-results.md
       // and guides/error-id-registry.md. Raw `throw new Error(...)` short-circuits
       // both: it hides failure modes from the signature and skips the error ID.
       'no-restricted-syntax': [
@@ -98,7 +98,7 @@ export default tseslint.config(
         },
       ],
 
-      // ── Tier 4: Complexity (sonarjs — Biome has noExcessiveCognitiveComplexity
+      // ── Tier 4: Complexity (sonarjs - Biome has noExcessiveCognitiveComplexity
       //    but sonarjs's heuristics are more mature) ─────────────────────────
       'sonarjs/cognitive-complexity': ['error', 15],
       'sonarjs/no-duplicate-string': ['error', { threshold: 5 }],

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Claude Code hook: enforce file size limits
-# PostToolUse on Write|Edit — exit 2 to block, exit 0 to pass
+# PostToolUse on Write|Edit - exit 2 to block, exit 0 to pass
 # (wire to both: files can grow past the limit through repeated Edits)
 #
 # Install: copy to ~/.claude/hooks/ and add to settings.json
@@ -36,15 +36,15 @@ if [ "$LINE_COUNT" -gt "$BLOCK_THRESHOLD" ]; then
 
 This file exceeds the maximum size. You MUST split it before proceeding.
 
-Split by concern — extract into separate files:
-- types.ts / types.py — type definitions and interfaces
-- constants.ts / constants.py — named constants and config values  
-- validation.ts / validation.py — input validation logic
-- utils.ts / utils.py — pure helper functions
-- [Name].test.ts — tests (always separate)
+Split by concern - extract into separate files:
+- types.ts / types.py - type definitions and interfaces
+- constants.ts / constants.py - named constants and config values  
+- validation.ts / validation.py - input validation logic
+- utils.ts / utils.py - pure helper functions
+- [Name].test.ts - tests (always separate)
 
 Each extracted file should be under 200 lines and handle a single responsibility.
-Do NOT just move code around — ensure clean imports and no circular dependencies.
+Do NOT just move code around - ensure clean imports and no circular dependencies.
 EOF
   [ -x "$(dirname "$0")/lib/log-event.sh" ] && "$(dirname "$0")/lib/log-event.sh" file-size block "$FILE_PATH" "$LINE_COUNT lines (limit $BLOCK_THRESHOLD)"
   exit 2

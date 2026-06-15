@@ -17,7 +17,7 @@ recurring file-size src/parsers 3
 recurring_events 3"
 assert_eq "$want" "$got" "full ledger stats"
 
-# Case 2: windowed since 2026-06-03 — only 3 events in window, no cluster reaches 3.
+# Case 2: windowed since 2026-06-03 - only 3 events in window, no cluster reaches 3.
 got=$(bash "$STATS" --ledger "$FIX" --min-recurr 3 --since 2026-06-03T00:00:00Z)
 want="events_total 5
 events_window 3

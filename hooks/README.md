@@ -4,7 +4,7 @@ Ready-to-use hook scripts for Claude Code. Add to your `settings.json`.
 
 ## Setup
 
-Recommended — run the idempotent installer from the repo root. It copies the
+Recommended - run the idempotent installer from the repo root. It copies the
 hooks (and `lib/`) to `~/.claude/hooks/`, stamps the installed version into
 `~/.claude/hooks/.agent-starter-version`, and merges the hook wiring into
 `~/.claude/settings.json` with jq (existing entries preserved, re-runs never
@@ -63,7 +63,7 @@ chmod +x ~/.claude/hooks/*.sh ~/.claude/hooks/lib/*.sh
 
 ### check-file-size.sh
 **Event:** PostToolUse (Write, Edit)
-**What it does:** Checks every file Claude writes or edits (wire to both — a file can grow past the limit through repeated Edits):
+**What it does:** Checks every file Claude writes or edits (wire to both - a file can grow past the limit through repeated Edits):
 - **>300 lines: BLOCKS the write** (exit 2) and tells Claude to split the file
 - **>200 lines: WARNS** that the file is getting large
 - Skips non-code files (.md, .json, .yaml, etc.)
@@ -72,7 +72,7 @@ chmod +x ~/.claude/hooks/*.sh ~/.claude/hooks/lib/*.sh
 ### lint-on-edit.sh
 **Event:** PostToolUse (Write, Edit)
 **What it does:** Runs Biome (`biome check --write`) then ESLint (`eslint --fix --max-warnings 0`) on any `.ts/.tsx/.js/.jsx/.mjs/.cjs` file Claude writes. Each tool runs only if its config + local binary are present.
-- **Exit 2** with the tool output on stderr if errors remain — Claude sees the errors and self-corrects on the next turn.
+- **Exit 2** with the tool output on stderr if errors remain - Claude sees the errors and self-corrects on the next turn.
 - Biome handles format + fast syntactic rules with autofix; ESLint handles type-aware + plugin rules (import resolution, sonarjs, security).
 - Opt-in `tsc --noEmit` per project: `touch .claude/enable-typecheck-on-edit` in the project root.
 - No-ops silently when no `package.json` is present or when neither tool is installed.
@@ -108,12 +108,12 @@ Add to `settings.json`:
 **Events:** PostToolUse (Read) + PreToolUse (Edit, Write)
 **What they do together:** Force a Read before every Edit/Write in a session. `track-reads.sh` logs every Read to `$CLAUDE_SESSION_DIR/read-files.txt`; `require-read-before-edit.sh` blocks any Edit/Write to an existing file that isn't in that log.
 
-> **Largely superseded:** recent Claude Code versions enforce read-before-edit natively — Edit fails without a prior Read, and Write refuses to overwrite an unread file. Keep this pair only for older versions, or if you want the attempted-unread-edit signal in the `.harness` ledger. `install.sh` wires it only with `--with-read-guard`.
+> **Largely superseded:** recent Claude Code versions enforce read-before-edit natively - Edit fails without a prior Read, and Write refuses to overwrite an unread file. Keep this pair only for older versions, or if you want the attempted-unread-edit signal in the `.harness` ledger. `install.sh` wires it only with `--with-read-guard`.
 
 - **Why:** LLMs routinely edit files from memory rather than current contents. This catches hallucinated edits before they corrupt files.
 - **Exempt paths:** add globs to `.claude/read-before-edit-exempt` (one per line).
 - **Escape hatch:** set `CLAUDE_SKIP_READ_CHECK=1` to disable.
-- **Install both** — the pre-hook fails open with a warning if the post-hook isn't logging.
+- **Install both** - the pre-hook fails open with a warning if the post-hook isn't logging.
 
 Add to `settings.json`:
 
@@ -158,9 +158,9 @@ Add to `settings.json`:
 ```
 
 ## Exit Code Behavior
-- **Exit 0** — success, proceed normally
-- **Exit 2** — BLOCK the action, stderr shown to Claude as error
-- **Other** — warning shown to user, doesn't block
+- **Exit 0** - success, proceed normally
+- **Exit 2** - BLOCK the action, stderr shown to Claude as error
+- **Other** - warning shown to user, doesn't block
 
 ## Self-improvement ledger
 

@@ -33,7 +33,7 @@ if command -v ruff >/dev/null 2>&1; then
   assert_eq 'x = 1' "$(head -1 "$tmp/src/fmt.py")" "ruff format rewrote spacing"
   rm -rf "$tmp"
 else
-  echo "  (ruff not installed — skipping ruff block/pass cases)"
+  echo "  (ruff not installed - skipping ruff block/pass cases)"
 fi
 
 exit $ASSERT_FAILED

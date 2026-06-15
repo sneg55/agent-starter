@@ -1,6 +1,6 @@
 ---
 name: new-project
-description: Full project bootstrap — interviews the developer (name, description, stack, components), then scaffolds directory structure, CLAUDE.md, config files, hooks, skills, and first commit.
+description: Full project bootstrap - interviews the developer (name, description, stack, components), then scaffolds directory structure, CLAUDE.md, config files, hooks, skills, and first commit.
 user_invocable: true
 allowed-tools:
 - Read
@@ -22,15 +22,15 @@ For existing projects, use `/adopt-project` instead.
 
 Ask these questions **one at a time** before taking any action:
 
-1. **Project name** — what is the name of the project?
-2. **Description** — one sentence describing what it does.
-3. **Tech stack** — language, framework, package manager (e.g. "TypeScript, Next.js, pnpm").
-4. **Optional components** — which would you like installed?
+1. **Project name** - what is the name of the project?
+2. **Description** - one sentence describing what it does.
+3. **Tech stack** - language, framework, package manager (e.g. "TypeScript, Next.js, pnpm").
+4. **Optional components** - which would you like installed?
    - Hooks (auto-enforce file size limits, lint-on-save, silent-error and dangerous-command blocking, codebase health checks at `~/.claude/hooks/`)
    - Skills (commit, commit-push-pr, simplify, remember, dream, new-project, adopt-project, reflect at `~/.claude/skills/`)
    - Both
    - Neither
-5. **Repo path** (only if hooks or skills selected) — what is the local path to the agent-starter repo? (e.g. `~/code/agent-starter`). If the answer to question 4 was "Neither", skip this question.
+5. **Repo path** (only if hooks or skills selected) - what is the local path to the agent-starter repo? (e.g. `~/code/agent-starter`). If the answer to question 4 was "Neither", skip this question.
 
 Do not proceed past this step until you have all answers.
 
@@ -80,28 +80,28 @@ There are four discrete types. Only save information that is NOT derivable from 
 
 Examples:
 - "I'm a data scientist investigating what logging we have in place" → save: user is a data scientist, currently focused on observability/logging
-- "I've been writing Go for ten years but this is my first time touching the React side" → save: deep Go expertise, new to React — frame frontend explanations in terms of backend analogues
+- "I've been writing Go for ten years but this is my first time touching the React side" → save: deep Go expertise, new to React - frame frontend explanations in terms of backend analogues
 
 ### feedback
-**What it stores:** Guidance the user has given about how to approach work — both what to avoid AND what to keep doing.
-**When to save:** Any time the user corrects your approach ("no not that", "don't", "stop doing X") OR confirms a non-obvious approach worked ("yes exactly", "perfect, keep doing that"). Corrections are easy to notice; confirmations are quieter — watch for them.
+**What it stores:** Guidance the user has given about how to approach work - both what to avoid AND what to keep doing.
+**When to save:** Any time the user corrects your approach ("no not that", "don't", "stop doing X") OR confirms a non-obvious approach worked ("yes exactly", "perfect, keep doing that"). Corrections are easy to notice; confirmations are quieter - watch for them.
 **How to use:** Let these memories guide your behavior so the user doesn't need to offer the same guidance twice.
 **Structure:** Lead with the rule, then a **Why:** line and a **How to apply:** line. Knowing why lets you judge edge cases.
 
 Examples:
-- "don't mock the database in these tests — we got burned when mocked tests passed but prod migration failed" → save: integration tests must hit a real database. Why: mock/prod divergence masked a broken migration. How to apply: all test files in this repo use real DB connections.
+- "don't mock the database in these tests - we got burned when mocked tests passed but prod migration failed" → save: integration tests must hit a real database. Why: mock/prod divergence masked a broken migration. How to apply: all test files in this repo use real DB connections.
 - "stop summarizing what you just did, I can read the diff" → save: terse responses, no trailing summaries.
-- "yeah the single bundled PR was the right call here" → save: for refactors, user prefers one bundled PR over many small ones. Confirmed approach — not a correction.
+- "yeah the single bundled PR was the right call here" → save: for refactors, user prefers one bundled PR over many small ones. Confirmed approach - not a correction.
 
 ### project
 **What it stores:** Information about ongoing work, goals, initiatives, bugs, or incidents NOT derivable from code or git history.
 **When to save:** When you learn who is doing what, why, or by when. Always convert relative dates to absolute (e.g., "Thursday" → "2026-03-05").
 **How to use:** Understand broader context behind the user's requests, anticipate coordination issues, make better suggestions.
-**Structure:** Lead with the fact/decision, then **Why:** and **How to apply:** lines. Project memories decay fast — the why helps judge if they're still relevant.
+**Structure:** Lead with the fact/decision, then **Why:** and **How to apply:** lines. Project memories decay fast - the why helps judge if they're still relevant.
 
 Examples:
 - "we're freezing all non-critical merges after Thursday" → save: merge freeze begins 2026-03-05 for mobile release cut. Flag non-critical PRs after that date.
-- "ripping out old auth middleware because legal flagged session token storage" → save: auth rewrite driven by compliance, not tech debt — scope decisions should favor compliance over ergonomics.
+- "ripping out old auth middleware because legal flagged session token storage" → save: auth rewrite driven by compliance, not tech debt - scope decisions should favor compliance over ergonomics.
 
 ### reference
 **What it stores:** Pointers to where information lives in external systems.
@@ -110,17 +110,17 @@ Examples:
 
 Examples:
 - "check Linear project INGEST for pipeline bugs" → save: pipeline bugs tracked in Linear project "INGEST"
-- "grafana.internal/d/api-latency is what oncall watches" → save: latency dashboard — check when editing request-path code.
+- "grafana.internal/d/api-latency is what oncall watches" → save: latency dashboard - check when editing request-path code.
 
 ## What NOT to Save
 
-- Code patterns, conventions, architecture, file paths, or project structure — derivable by reading the project
-- Git history, recent changes, who-changed-what — `git log` / `git blame` are authoritative
-- Debugging solutions or fix recipes — the fix is in the code, commit message has context
+- Code patterns, conventions, architecture, file paths, or project structure - derivable by reading the project
+- Git history, recent changes, who-changed-what - `git log` / `git blame` are authoritative
+- Debugging solutions or fix recipes - the fix is in the code, commit message has context
 - Anything already documented in CLAUDE.md files
 - Ephemeral task details: in-progress work, temporary state, current conversation context
 
-These exclusions apply even when the user explicitly asks. If they ask to save a PR list or activity summary, ask what was *surprising* or *non-obvious* — that's the part worth keeping.
+These exclusions apply even when the user explicitly asks. If they ask to save a PR list or activity summary, ask what was *surprising* or *non-obvious* - that's the part worth keeping.
 
 ## Memory File Format
 
@@ -129,17 +129,17 @@ Each memory is its own `.md` file with YAML frontmatter:
 ```markdown
 ---
 name: {{memory name}}
-description: {{one-line description — be specific, used to decide relevance in future conversations}}
+description: {{one-line description - be specific, used to decide relevance in future conversations}}
 type: {{user, feedback, project, reference}}
 ---
 
-{{memory content — for feedback/project types: rule/fact, then **Why:** and **How to apply:** lines}}
+{{memory content - for feedback/project types: rule/fact, then **Why:** and **How to apply:** lines}}
 ```
 
 ### Saving Process
 1. Write the memory to its own file (e.g., `user_role.md`, `feedback_testing.md`)
-2. Add a one-line pointer in `MEMORY.md`: `- [Title](file.md) — one-line hook`
-3. Keep `MEMORY.md` under 200 lines — it's an index, not a dump
+2. Add a one-line pointer in `MEMORY.md`: `- [Title](file.md) - one-line hook`
+3. Keep `MEMORY.md` under 200 lines - it's an index, not a dump
 
 ### Maintenance
 - Keep name, description, and type fields up-to-date with content
@@ -169,24 +169,24 @@ A memory that summarizes repo state is frozen in time. For *recent* or *current*
 
 Periodically review and consolidate memories:
 
-### Phase 1 — Orient
+### Phase 1 - Orient
 - List the memory directory to see what exists
 - Read MEMORY.md to understand the current index
 - Skim existing topic files to improve rather than duplicate
 
-### Phase 2 — Gather
+### Phase 2 - Gather
 - Check for new information worth persisting
 - Look for existing memories that contradict current codebase state
 - Search transcripts narrowly for specific context if needed
 
-### Phase 3 — Consolidate
+### Phase 3 - Consolidate
 - Merge new signal into existing topic files (don't create near-duplicates)
 - Convert relative dates to absolute dates
 - Delete contradicted facts at the source
 
-### Phase 4 — Prune
+### Phase 4 - Prune
 - Keep MEMORY.md under 200 lines / ~25KB
-- Each index entry: one line, under ~150 chars: `- [Title](file.md) — one-line hook`
+- Each index entry: one line, under ~150 chars: `- [Title](file.md) - one-line hook`
 - Remove pointers to stale/superseded memories
 - Resolve contradictions between files
 
@@ -222,7 +222,7 @@ coverage/
 
 **`.env.example`** at `<project-name>/.env.example`:
 ```
-# Required environment variables — copy to .env and fill in values
+# Required environment variables - copy to .env and fill in values
 ```
 
 **`README.md`** at `<project-name>/README.md`:
@@ -236,7 +236,7 @@ coverage/
 <!-- Add setup instructions here -->
 ```
 
-**Lint configs** — if the stack is TypeScript/JavaScript:
+**Lint configs** - if the stack is TypeScript/JavaScript:
 
 ```bash
 cp <repo-path>/templates/biome.json <project-name>/biome.json
@@ -259,21 +259,21 @@ See `guides/lint-rules-for-ai.md` for what the rules catch. Skip for other stack
 
 ### 4. Install hooks (if selected)
 
-Run the idempotent installer — it copies the hooks (and `lib/`) to
+Run the idempotent installer - it copies the hooks (and `lib/`) to
 `~/.claude/hooks/`, stamps the installed version, and merges the hook wiring
 into `~/.claude/settings.json` with jq. Existing entries are preserved and
-re-running never duplicates anything — do not hand-edit the JSON:
+re-running never duplicates anything - do not hand-edit the JSON:
 
 ```bash
 bash <repo-path>/install.sh
 ```
 
 Hook behavior (wired by default):
-- `check-file-size.sh` — runs after every Write/Edit. Blocks (exit 2) files over 300 lines; warns over 200 lines. Skips `.md`, `.json`, `.yaml`.
-- `lint-on-edit.sh` — Biome + ESLint on save for JS/TS; ruff check + format for Python.
-- `check-silent-errors.sh` — blocks writes that introduce swallowed exceptions.
-- `block-dangerous-commands.sh` — blocks force-push, `git reset --hard`, recursive rm on `/`/`~`, before they run.
-- `check-codebase-health.sh` — runs at session start. Reports files over 500 lines that need splitting. Silent when healthy.
+- `check-file-size.sh` - runs after every Write/Edit. Blocks (exit 2) files over 300 lines; warns over 200 lines. Skips `.md`, `.json`, `.yaml`.
+- `lint-on-edit.sh` - Biome + ESLint on save for JS/TS; ruff check + format for Python.
+- `check-silent-errors.sh` - blocks writes that introduce swallowed exceptions.
+- `block-dangerous-commands.sh` - blocks force-push, `git reset --hard`, recursive rm on `/`/`~`, before they run.
+- `check-codebase-health.sh` - runs at session start. Reports files over 500 lines that need splitting. Silent when healthy.
 
 Optional: `--with-read-guard` also wires `track-reads.sh` + `require-read-before-edit.sh`. Recent Claude Code versions enforce read-before-edit natively, so only add it for older versions.
 
@@ -293,14 +293,14 @@ cp -r <repo-path>/skills/reflect ~/.claude/skills/
 ```
 
 Installed skills:
-- `/commit` — single well-crafted git commit with "why not what" message
-- `/commit-push-pr` — full workflow: branch, commit, push, create/update PR
-- `/simplify` — 3 parallel agents review your diff for reuse, quality, efficiency
-- `/remember` — review auto-memory and promote to CLAUDE.md or CLAUDE.local.md
-- `/dream` — memory consolidation: merge, prune, re-index memory files
-- `/new-project` — this skill (bootstrap a new project)
-- `/adopt-project` — apply these patterns to an existing codebase
-- `/reflect` — read ledger, cluster recurring mistakes, propose improvements
+- `/commit` - single well-crafted git commit with "why not what" message
+- `/commit-push-pr` - full workflow: branch, commit, push, create/update PR
+- `/simplify` - 3 parallel agents review your diff for reuse, quality, efficiency
+- `/remember` - review auto-memory and promote to CLAUDE.md or CLAUDE.local.md
+- `/dream` - memory consolidation: merge, prune, re-index memory files
+- `/new-project` - this skill (bootstrap a new project)
+- `/adopt-project` - apply these patterns to an existing codebase
+- `/reflect` - read ledger, cluster recurring mistakes, propose improvements
 
 ### 6. Initialize the self-improvement ledger
 
@@ -337,7 +337,7 @@ Confirm each item before reporting done:
 - [ ] Project directory with feature-based structure (`src/features`, `src/services`, `src/utils`, `src/types`, `src/constants`, `src/schemas`, `src/entrypoints`, `src/migrations`, `tests/`, `docs/`, `scripts/`)
 - [ ] `CLAUDE.md` present with project name and description filled in
 - [ ] `.gitignore`, `.env.example`, and `README.md` present
-- [ ] Lint configs copied + deps installed — `biome.json` + `eslint.config.mjs` (TS/JS) or `ruff.toml` + `pyrightconfig.json` (Python); skipped for other stacks
+- [ ] Lint configs copied + deps installed - `biome.json` + `eslint.config.mjs` (TS/JS) or `ruff.toml` + `pyrightconfig.json` (Python); skipped for other stacks
 - [ ] Hooks installed to `~/.claude/hooks/` and configured in `settings.json` (if selected)
 - [ ] Skills installed to `~/.claude/skills/` (if selected)
 - [ ] `.harness/reflections/` created and `.harness/ledger.jsonl` added to `.gitignore`

@@ -12,7 +12,7 @@
 // Drop into src/utils/ and import from every tool's result formatter.
 
 export type TruncateOptions = {
-  /** Max total characters. Hard cap — output is always <= this. Default 32_000. */
+  /** Max total characters. Hard cap - output is always <= this. Default 32_000. */
   maxChars?: number
   /** Max total lines. Applied BEFORE char cap. Default 400. */
   maxLines?: number
@@ -54,7 +54,7 @@ export function truncateForContext(input: string, opts: TruncateOptions = {}): T
     const elided = lines.length - o.headLines - o.tailLines
     text = [
       ...head,
-      `[... ${elided} lines of ${o.kind} elided — total ${originalLines} lines ...]`,
+      `[... ${elided} lines of ${o.kind} elided - total ${originalLines} lines ...]`,
       ...tail,
     ].join('\n')
     truncated = true
