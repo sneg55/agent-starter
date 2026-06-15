@@ -1,6 +1,6 @@
 ---
 name: commit-push-pr
-description: Full git workflow — creates branch, commits, pushes, and creates or updates a PR with summary and test plan.
+description: Full git workflow - creates branch, commits, pushes, and creates or updates a PR with summary and test plan.
 user_invocable: true
 allowed-tools:
   - Bash(git checkout --branch:*)
@@ -37,7 +37,7 @@ Gather this context first:
 
 ## Task
 
-Analyze ALL changes that will be included in the pull request — look at ALL commits from `git diff main...HEAD`, not just the latest commit.
+Analyze ALL changes that will be included in the pull request - look at ALL commits from `git diff main...HEAD`, not just the latest commit.
 
 Based on the changes:
 
@@ -67,7 +67,7 @@ git push -u origin HEAD
 ### 4. Create or update PR
 Check if a PR already exists (from the `gh pr view` output above).
 
-**If PR exists** — update it:
+**If PR exists** - update it:
 ```
 gh pr edit --title "Short title" --body "$(cat <<'EOF'
 ## Summary
@@ -80,7 +80,7 @@ EOF
 )"
 ```
 
-**If no PR** — create one:
+**If no PR** - create one:
 ```
 gh pr create --title "Short, descriptive title" --body "$(cat <<'EOF'
 ## Summary

@@ -7,7 +7,7 @@ Every long-running operation must accept an `AbortSignal` and propagate it to ev
 LLMs ship code like this:
 
 ```ts
-// Bad — nothing responds to cancel.
+// Bad - nothing responds to cancel.
 export async function fetchAndProcess(url: string) {
   const res = await fetch(url)                  // not abortable
   const body = await res.text()                 // not abortable
@@ -15,7 +15,7 @@ export async function fetchAndProcess(url: string) {
 }
 ```
 
-When the user hits Ctrl+C, or an outer timeout fires, or the job is obsoleted by a newer request — none of these calls stop. The process keeps burning CPU and the result gets thrown away. Worse: the *next* job starts while the previous one is still running, corrupting shared state.
+When the user hits Ctrl+C, or an outer timeout fires, or the job is obsoleted by a newer request - none of these calls stop. The process keeps burning CPU and the result gets thrown away. Worse: the *next* job starts while the previous one is still running, corrupting shared state.
 
 The fix isn't complicated, but agents routinely skip it because "it works" without the signal. The patterns below make it cheap enough that skipping it is never worth it.
 
@@ -59,7 +59,7 @@ export async function runJob(req: Request): Promise<Result> {
 }
 ```
 
-For tools invoked by the agent, the framework should pass a signal in `ctx.signal` — tool implementations never create their own.
+For tools invoked by the agent, the framework should pass a signal in `ctx.signal` - tool implementations never create their own.
 
 ## Composing timeouts
 
@@ -95,7 +95,7 @@ Forgetting this is the single most common cancellation bug. The process "aborts"
   }
   ```
 - **Don't default `signal` to `undefined`.** Require it. A function that "might" accept a signal won't get one.
-- **Don't poll.** No `while (!signal.aborted) { ... await tick() }` — use `signal.addEventListener('abort', ...)` or `throwIfAborted()`.
+- **Don't poll.** No `while (!signal.aborted) { ... await tick() }` - use `signal.addEventListener('abort', ...)` or `throwIfAborted()`.
 
 ## Enforcement
 
@@ -109,7 +109,7 @@ Post-edit lint + a custom rule catches most misses:
     'error',
     {
       selector: "CallExpression[callee.name='fetch'] > ObjectExpression:not(:has(Property[key.name='signal']))",
-      message: 'fetch() must receive { signal } — see guides/abort-signal-threading.md.',
+      message: 'fetch() must receive { signal } - see guides/abort-signal-threading.md.',
     },
   ],
   ```
@@ -126,16 +126,16 @@ Post-edit lint + a custom rule catches most misses:
 
 The AbortSignal analog is task cancellation, and the same contract translates rule for rule.
 
-**1. Don't swallow `CancelledError`.** Since 3.8 it inherits from `BaseException` precisely so `except Exception` can't eat it — but `except BaseException` and bare `except:` still do (and ruff's `E722`/`BLE` flag those). If you intercept it for cleanup, always re-raise:
+**1. Don't swallow `CancelledError`.** Since 3.8 it inherits from `BaseException` precisely so `except Exception` can't eat it - but `except BaseException` and bare `except:` still do (and ruff's `E722`/`BLE` flag those). If you intercept it for cleanup, always re-raise:
 
 ```python
-# Bad — cancellation papered over; the task never actually stops.
+# Bad - cancellation papered over; the task never actually stops.
 try:
     return await fetch(url)
 except BaseException:
     return None
 
-# Good — clean up, then propagate.
+# Good - clean up, then propagate.
 try:
     return await fetch(url)
 except asyncio.CancelledError:
@@ -151,9 +151,9 @@ async with asyncio.timeout(30):          # outer budget
         await fetch(url)
 ```
 
-**3. Cancellation only lands at `await` points.** Heavy synchronous work inside a coroutine blocks cancellation the same way un-threaded sync work defeats AbortSignal. Push CPU-bound work to `await asyncio.to_thread(...)`, or insert `await asyncio.sleep(0)` between chunks — the `throwIfAborted()` analog.
+**3. Cancellation only lands at `await` points.** Heavy synchronous work inside a coroutine blocks cancellation the same way un-threaded sync work defeats AbortSignal. Push CPU-bound work to `await asyncio.to_thread(...)`, or insert `await asyncio.sleep(0)` between chunks - the `throwIfAborted()` analog.
 
-**4. Subprocesses must die with the task** — same "cleanup on abort" rule:
+**4. Subprocesses must die with the task** - same "cleanup on abort" rule:
 
 ```python
 proc = await asyncio.create_subprocess_exec("rg", *args)
@@ -164,4 +164,4 @@ except asyncio.CancelledError:
     raise
 ```
 
-**Enforcement:** the `ASYNC` rules in `templates/ruff.toml` catch blocking calls (`time.sleep`, sync `open`, sync `subprocess.run`) inside `async def` — the most common way agents accidentally make code uncancellable. If the project uses structured concurrency (`anyio`/`TaskGroup`), scoped cancellation comes for free; rules 1, 3, and 4 still apply inside each scope.
+**Enforcement:** the `ASYNC` rules in `templates/ruff.toml` catch blocking calls (`time.sleep`, sync `open`, sync `subprocess.run`) inside `async def` - the most common way agents accidentally make code uncancellable. If the project uses structured concurrency (`anyio`/`TaskGroup`), scoped cancellation comes for free; rules 1, 3, and 4 still apply inside each scope.

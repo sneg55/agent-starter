@@ -18,7 +18,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True, slots=True)
 class TruncateOptions:
-    max_chars: int = 32_000  # Hard cap — output is always <= this.
+    max_chars: int = 32_000  # Hard cap - output is always <= this.
     max_lines: int = 400  # Applied BEFORE the char cap.
     head_lines: int = 200  # Kept from the start when truncating by lines.
     tail_lines: int = 100  # Kept from the end when truncating by lines.
@@ -46,7 +46,7 @@ def truncate_for_context(text_in: str, opts: TruncateOptions | None = None) -> T
         head = lines[: o.head_lines]
         tail = lines[-o.tail_lines :]
         elided = len(lines) - o.head_lines - o.tail_lines
-        marker = f"[... {elided} lines of {o.kind} elided — total {original_lines} lines ...]"
+        marker = f"[... {elided} lines of {o.kind} elided - total {original_lines} lines ...]"
         text = "\n".join([*head, marker, *tail])
         truncated = True
 

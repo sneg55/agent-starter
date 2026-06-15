@@ -4,7 +4,7 @@
 //   1. This file is the ONLY place `process.env` is read.
 //     (The ESLint config enforces this via no-restricted-properties.)
 //   2. The schema is the source of truth for the `Env` type.
-//   3. `envSchema.parse` throws at import time — fail fast on misconfiguration.
+//   3. `envSchema.parse` throws at import time - fail fast on misconfiguration.
 //   4. Add new vars here, declare their shape, provide a default where sensible.
 //
 // Consumers:
@@ -19,7 +19,7 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
 
-  // ── External services (examples — replace with your own) ─────────────────
+  // ── External services (examples - replace with your own) ─────────────────
   // DATABASE_URL: z.string().url(),
   // REDIS_URL: z.string().url().optional(),
   // ANTHROPIC_API_KEY: z.string().min(1),

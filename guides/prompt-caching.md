@@ -17,10 +17,10 @@ From first byte to last:
 1. **System prompt** (hard-coded string, rarely changes).
 2. **Tool definitions** (sorted by name, serialized with a stable JSON key order).
 3. **Retrieved context / RAG chunks** that are stable for this session or user (project CLAUDE.md, repo metadata). Sort and dedupe.
-4. **Conversation history** (append-only — never reorder past turns).
+4. **Conversation history** (append-only - never reorder past turns).
 5. **Current user turn** (the only part that changes per-call).
 
-Each of 1–3 gets a `cache_control: { type: 'ephemeral' }` breakpoint at its end. Anthropic allows up to 4 breakpoints — that's enough for this layout.
+Each of 1–3 gets a `cache_control: { type: 'ephemeral' }` breakpoint at its end. Anthropic allows up to 4 breakpoints - that's enough for this layout.
 
 ```ts
 const response = await client.messages.create({
@@ -50,7 +50,7 @@ const response = await client.messages.create({
 
 **Per-user personalization in the system prompt.** "Hello, {name}" at byte 0 = one cache per user. Put the name at the end of the stable section (after a breakpoint) or in the user turn.
 
-**Streaming your own summaries back in.** If an intermediate step rewrites earlier history ("compacting" past turns), the prefix changes and every subsequent call misses. Keep compaction at a coarse granularity — all-or-nothing per session, not per turn.
+**Streaming your own summaries back in.** If an intermediate step rewrites earlier history ("compacting" past turns), the prefix changes and every subsequent call misses. Keep compaction at a coarse granularity - all-or-nothing per session, not per turn.
 
 ## Measuring hit rate
 
@@ -62,16 +62,16 @@ const total = cache_creation_input_tokens + cache_read_input_tokens + input_toke
 const hitRate = cache_read_input_tokens / total
 ```
 
-A healthy agent loop runs **> 0.85** hit rate steady-state. Below 0.5 means the prefix is unstable — go find the timestamp.
+A healthy agent loop runs **> 0.85** hit rate steady-state. Below 0.5 means the prefix is unstable - go find the timestamp.
 
 ## Sizing for the cache
 
-The cache has a **1024-token minimum** per breakpoint (varies by model — check docs). A breakpoint on a 200-token section wastes the breakpoint. Either bundle small sections together or drop the breakpoint.
+The cache has a **1024-token minimum** per breakpoint (varies by model - check docs). A breakpoint on a 200-token section wastes the breakpoint. Either bundle small sections together or drop the breakpoint.
 
 ## TTL behavior
 
 - **5-minute TTL, refreshed on every hit.** A steadily used session keeps its cache warm indefinitely.
-- **First call in > 5 min eats the miss.** This is why polling loops (`ScheduleWakeup`, etc.) should pick intervals of either < 270s (stay warm) or > 1200s (amortize the miss). 5-minute polls are the worst case — a miss on every tick.
+- **First call in > 5 min eats the miss.** This is why polling loops (`ScheduleWakeup`, etc.) should pick intervals of either < 270s (stay warm) or > 1200s (amortize the miss). 5-minute polls are the worst case - a miss on every tick.
 
 ## Patterns specific to agents
 
@@ -83,7 +83,7 @@ The cache has a **1024-token minimum** per breakpoint (varies by model — check
 
 - 80%+ input cost reduction on typical agent workloads.
 - 30–50% latency reduction on repeat turns.
-- Much smaller spread between cheap and expensive sessions — billing becomes predictable.
+- Much smaller spread between cheap and expensive sessions - billing becomes predictable.
 
 ## Cross-references
 

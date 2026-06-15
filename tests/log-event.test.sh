@@ -30,7 +30,7 @@ lines=$(wc -l < "$tmp/.harness/ledger.jsonl" | tr -d ' ')
 assert_eq 2 "$lines" "second call appends"
 rm -rf "$tmp"
 
-# Case 3: invariant — never fails the caller even with empty/missing args
+# Case 3: invariant - never fails the caller even with empty/missing args
 tmp=$(mktemp -d)
 ( cd "$tmp" && "$LOG" ); rc=$?
 assert_eq 0 "$rc" "exits 0 with no args"

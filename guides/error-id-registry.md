@@ -4,11 +4,11 @@ Every thrown error gets a stable ID. One central file (`src/constants/errorIds.t
 
 ## Why
 
-LLMs write error messages that drift across edits. "Failed to parse config" becomes "Config parse error" becomes "Unable to read config" — three log lines for one bug. Grep stops working. Alerts stop firing.
+LLMs write error messages that drift across edits. "Failed to parse config" becomes "Config parse error" becomes "Unable to read config" - three log lines for one bug. Grep stops working. Alerts stop firing.
 
 A stable ID (`E_CFG_001`) fixes this:
 - **Grep** works: `rg 'E_CFG_001'` finds every throw site, every log line, every test that asserts the error.
-- **Agents can reference errors by ID** when asked "why did X fail?" — they look up the ID, not a fuzzy string match.
+- **Agents can reference errors by ID** when asked "why did X fail?" - they look up the ID, not a fuzzy string match.
 - **Docs point to IDs.** `See docs/errors.md#E_CFG_001` survives message rewording.
 - **Dedup in telemetry.** One alert rule per ID, not one per phrasing.
 
@@ -90,7 +90,7 @@ Log line:
 
 ## Optional: doc generation
 
-Once the registry exists, a script can generate `docs/errors.md` from it — each ID with its message template, common causes, and remediation. This matters when the codebase gets big enough that people look errors up instead of reading the thrower.
+Once the registry exists, a script can generate `docs/errors.md` from it - each ID with its message template, common causes, and remediation. This matters when the codebase gets big enough that people look errors up instead of reading the thrower.
 
 ```ts
 // scripts/gen-error-docs.ts
@@ -118,11 +118,11 @@ Exemptions: tests and scripts. Add an override.
 
 - When a test fails, the agent sees `[E_FS_002]` and jumps straight to the registry, then to every site that throws that ID.
 - When asked to add a new error, the agent appends to `errorIds.ts` with a new number instead of inventing a new message, which means grep still works next week.
-- When asked to *rename* an error, the agent changes the message but keeps the ID — no telemetry churn.
+- When asked to *rename* an error, the agent changes the message but keeps the ID - no telemetry churn.
 
 ## Python
 
-Same registry, same four rules. Drop-in template: `templates/error_ids.py` — a `StrEnum` registry plus an `AppError` exception that requires an ID:
+Same registry, same four rules. Drop-in template: `templates/error_ids.py` - a `StrEnum` registry plus an `AppError` exception that requires an ID:
 
 ```python
 from app.error_ids import AppError, ErrorIds
@@ -133,6 +133,6 @@ raise AppError(ErrorIds.CFG_SCHEMA_FAIL, "config failed validation", {
 })
 ```
 
-The log-line format is identical (`[E_CFG_003] config failed validation path=...`), so grep, telemetry rules, and docs work unchanged across both languages — keep the two registries' IDs in sync if a project ships both.
+The log-line format is identical (`[E_CFG_003] config failed validation path=...`), so grep, telemetry rules, and docs work unchanged across both languages - keep the two registries' IDs in sync if a project ships both.
 
 Lint support: `TRY002` (already selected in `templates/ruff.toml`) flags `raise Exception(...)` the way the ESLint `no-restricted-syntax` rule flags raw `new Error(...)`. Exempt tests via per-file ignores if needed.

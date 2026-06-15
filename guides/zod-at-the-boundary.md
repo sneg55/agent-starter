@@ -10,13 +10,13 @@ Any data crossing into your program's type system passes through a Zod schema on
 
 Boundaries are:
 
-- **User input** — CLI args, stdin, HTTP bodies, form submits.
-- **Env vars** — `process.env.*`.
-- **File reads** — config, cache, fixtures, anything from disk.
-- **Network** — `fetch`, MCP responses, third-party APIs.
-- **Database** — row reads, until the driver is schema-aware.
-- **LLM output** — model responses parsed as JSON.
-- **IPC** — subprocess stdout, worker messages.
+- **User input** - CLI args, stdin, HTTP bodies, form submits.
+- **Env vars** - `process.env.*`.
+- **File reads** - config, cache, fixtures, anything from disk.
+- **Network** - `fetch`, MCP responses, third-party APIs.
+- **Database** - row reads, until the driver is schema-aware.
+- **LLM output** - model responses parsed as JSON.
+- **IPC** - subprocess stdout, worker messages.
 
 Everything else is internal and already typed.
 
@@ -25,7 +25,7 @@ Everything else is internal and already typed.
 Declare the schema; infer the type from it. Never both.
 
 ```ts
-// Bad — two sources of truth, will desync.
+// Bad - two sources of truth, will desync.
 interface Config {
   apiUrl: string
   timeout: number
@@ -35,7 +35,7 @@ const configSchema = z.object({
   timeout: z.number(),
 })
 
-// Good — one source.
+// Good - one source.
 const configSchema = z.object({
   apiUrl: z.string().url(),
   timeout: z.number().int().positive(),
@@ -63,7 +63,7 @@ export type Config = z.infer<typeof configSchema>
 ```
 
 ```ts
-// src/config/load.ts — the boundary
+// src/config/load.ts - the boundary
 import { configSchema, type Config } from './schema'
 import { ok, err, type Result } from '@/types/result'
 import { AppError, ErrorIds } from '@/errors'
@@ -84,7 +84,7 @@ export function loadConfig(path: string): Result<Config> {
 ```
 
 ```ts
-// src/features/some-feature.ts — inside, Config is trusted
+// src/features/some-feature.ts - inside, Config is trusted
 import type { Config } from '@/config/schema'
 
 export function runFeature(cfg: Config) {
@@ -101,7 +101,7 @@ Nothing inside re-checks the shape. No `typeof`, no `if (cfg)`, no `??` fallback
 Probably the most abused one. Don't sprinkle `process.env.X` across 40 files.
 
 ```ts
-// src/env.ts — the single env boundary
+// src/env.ts - the single env boundary
 import { z } from 'zod'
 
 const envSchema = z.object({
@@ -135,7 +135,7 @@ if (!parsed.success) {
 use(parsed.data)
 ```
 
-For tool-use / structured-output APIs, the model's schema adherence is near-perfect — but "near-perfect" is the exact failure mode you need to catch.
+For tool-use / structured-output APIs, the model's schema adherence is near-perfect - but "near-perfect" is the exact failure mode you need to catch.
 
 ## Network responses
 
@@ -164,11 +164,11 @@ Downstream callers take `Repo`, not `unknown`. If GitHub adds a field, the schem
 
 ## Patterns worth using
 
-**`safeParse` at boundaries, `parse` at startup.** `safeParse` returns `Result`-like data; `parse` throws. Startup-time validation (env, loaded-once config) is fine to throw — if the env is bad, the app can't run. Runtime-receiving validation (HTTP body, file read, LLM reply) uses `safeParse` so one bad request doesn't crash the process.
+**`safeParse` at boundaries, `parse` at startup.** `safeParse` returns `Result`-like data; `parse` throws. Startup-time validation (env, loaded-once config) is fine to throw - if the env is bad, the app can't run. Runtime-receiving validation (HTTP body, file read, LLM reply) uses `safeParse` so one bad request doesn't crash the process.
 
 **`.default()` inside the schema, not in consumer code.** Defaults are part of the shape. Put them in the schema so every caller gets the same default and the type reflects it.
 
-**`.transform` to normalize.** Parsing an ISO date string to a `Date`, coercing `"1"/"0"` to boolean — do it in the schema, not per call site.
+**`.transform` to normalize.** Parsing an ISO date string to a `Date`, coercing `"1"/"0"` to boolean - do it in the schema, not per call site.
 
 **Branded types for validated primitives.**
 
@@ -189,15 +189,15 @@ Now a function that takes `Email` can only receive a parsed one. Raw strings fai
 
 ## What this buys an agent
 
-- **One file to read** to answer "what's the shape of X?" — the schema.
+- **One file to read** to answer "what's the shape of X?" - the schema.
 - **Failures happen at the edge** with the exact field and reason, not as `undefined is not a function` ten stack frames deep.
-- **No defensive `typeof` checks inside** — LLMs routinely add them; Zod-at-the-boundary makes them obviously unnecessary, so the agent stops writing them.
+- **No defensive `typeof` checks inside** - LLMs routinely add them; Zod-at-the-boundary makes them obviously unnecessary, so the agent stops writing them.
 - **Schema changes propagate as compile errors.** Add a field: the compiler lists every site that needs it. Remove one: same.
 - **No type-lies.** `JSON.parse(x) as Config` compiles and lies; `configSchema.parse(x)` either succeeds honestly or fails loudly.
 
 ## Python: same pattern, pydantic
 
-The intro already said it: swap the library, keep the rule. In Python the boundary tool is pydantic v2 — the model is the source of truth for the type, and nothing duplicates the shape in a `TypedDict` or dataclass.
+The intro already said it: swap the library, keep the rule. In Python the boundary tool is pydantic v2 - the model is the source of truth for the type, and nothing duplicates the shape in a `TypedDict` or dataclass.
 
 ```python
 # src/config/schema.py
@@ -213,7 +213,7 @@ class Config(BaseModel):
 ```
 
 ```python
-# src/config/load.py — the boundary
+# src/config/load.py - the boundary
 import json
 from pathlib import Path
 
@@ -233,23 +233,23 @@ def load_config(path: str) -> Config:
         ) from e
 ```
 
-Inside, `Config` is trusted — no `isinstance` checks, no `.get(..., default)` fallbacks for fields the model already defaulted.
+Inside, `Config` is trusted - no `isinstance` checks, no `.get(..., default)` fallbacks for fields the model already defaulted.
 
 The boundary map translates directly:
 
-- **Env vars** — `templates/env.py` is the single env boundary via `pydantic-settings`, the analog of `templates/env.ts`. Validation at import time; invalid env exits with the exact field and reason.
-- **LLM output** — `Model.model_validate_json(response_text)`. On `ValidationError`, re-prompt with `e.errors()` or fall back. Same rule: "near-perfect schema adherence" is the failure mode you catch.
-- **Network** — validate response bodies with a model per endpoint; extra fields are ignored by default, removed fields fail loudly.
+- **Env vars** - `templates/env.py` is the single env boundary via `pydantic-settings`, the analog of `templates/env.ts`. Validation at import time; invalid env exits with the exact field and reason.
+- **LLM output** - `Model.model_validate_json(response_text)`. On `ValidationError`, re-prompt with `e.errors()` or fall back. Same rule: "near-perfect schema adherence" is the failure mode you catch.
+- **Network** - validate response bodies with a model per endpoint; extra fields are ignored by default, removed fields fail loudly.
 
 And the patterns:
 
 - **`parse` vs `safeParse`** maps to *let `ValidationError` crash startup* (env, loaded-once config) vs *catch it and return a `Result`* (HTTP bodies, file reads, LLM replies). See the Python section of `guides/discriminated-union-results.md`.
 - **Defaults and `.transform`** live in the model: `Field(default=...)`, `field_validator` for normalization (ISO string → `datetime`).
-- **Branded types** — `Annotated[str, AfterValidator(check)]`, or `NewType` for the cheap version; a function that takes `Email` can only receive a validated one.
+- **Branded types** - `Annotated[str, AfterValidator(check)]`, or `NewType` for the cheap version; a function that takes `Email` can only receive a validated one.
 
 ## Cross-references
 
-- `guides/discriminated-union-results.md` — `safeParse` pairs naturally with `Result<T, AppError>`.
-- `guides/error-id-registry.md` — schema failures throw with a stable `E_CFG_SCHEMA_FAIL` / `E_LLM_BAD_RESPONSE` ID.
-- `guides/large-codebase-best-practices.md` §9 — env validation is the same pattern in miniature; this guide generalizes it.
-- `templates/env.py` / `templates/ruff.toml` — the Python halves: pydantic-settings env boundary, and lint rules that keep `os.environ` reads out of module depths.
+- `guides/discriminated-union-results.md` - `safeParse` pairs naturally with `Result<T, AppError>`.
+- `guides/error-id-registry.md` - schema failures throw with a stable `E_CFG_SCHEMA_FAIL` / `E_LLM_BAD_RESPONSE` ID.
+- `guides/large-codebase-best-practices.md` §9 - env validation is the same pattern in miniature; this guide generalizes it.
+- `templates/env.py` / `templates/ruff.toml` - the Python halves: pydantic-settings env boundary, and lint rules that keep `os.environ` reads out of module depths.

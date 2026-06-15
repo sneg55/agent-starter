@@ -1,5 +1,5 @@
 #!/bin/bash
-# Tests for install.sh — idempotent hook copy + settings.json merge.
+# Tests for install.sh - idempotent hook copy + settings.json merge.
 set -u
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 . "$ROOT/tests/lib/assert.sh"

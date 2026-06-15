@@ -1,6 +1,6 @@
 #!/bin/bash
 # Idempotent installer: copies the agent-starter hooks into <claude-dir>/hooks
-# and merges their wiring into <claude-dir>/settings.json with jq — no
+# and merges their wiring into <claude-dir>/settings.json with jq - no
 # hand-editing of JSON.
 #
 # Usage: ./install.sh [--claude-dir DIR] [--with-read-guard]
@@ -52,7 +52,7 @@ if [ ! -f "$SETTINGS" ]; then
   printf '{}\n' > "$SETTINGS"
 fi
 if ! jq -e . "$SETTINGS" >/dev/null 2>&1; then
-  echo "error: $SETTINGS is not valid JSON — fix it before installing" >&2
+  echo "error: $SETTINGS is not valid JSON - fix it before installing" >&2
   exit 1
 fi
 

@@ -26,9 +26,9 @@ component**.
 
 Ask one at a time:
 
-1. **Components** — which are you interested in? (hooks / skills / CLAUDE.md +
+1. **Components** - which are you interested in? (hooks / skills / CLAUDE.md +
    memory / lint configs / code patterns / "audit first, then decide")
-2. **Repo path** — local path to agent-starter (only needed if files will be
+2. **Repo path** - local path to agent-starter (only needed if files will be
    copied).
 
 ## Step 2: Audit (read-only)
@@ -63,19 +63,19 @@ Present the menu grouped by invasiveness, with per-item conflict notes from
 the audit. Wait for explicit approval per item (or "all of tier N"). Nothing
 is applied unapproved.
 
-### Tier 1 — Non-invasive (no project-file conflicts possible)
+### Tier 1 - Non-invasive (no project-file conflicts possible)
 
-- **Hooks:** `bash <repo-path>/install.sh` — idempotent; installs to
+- **Hooks:** `bash <repo-path>/install.sh` - idempotent; installs to
   `~/.claude/hooks/` and merges the settings.json wiring with jq. Note for the
-  developer: hooks are **user-global** — they will also fire in their other
+  developer: hooks are **user-global** - they will also fire in their other
   projects.
 - **Skills:** copy from `<repo-path>/skills/` to `~/.claude/skills/` (see
   AGENT.md step 6 for the list).
 - **Self-improvement ledger:**
   `mkdir -p .harness/reflections && echo '.harness/ledger.jsonl' >> .gitignore`
-  — the hooks log to it automatically; `/reflect` reads it.
+  - the hooks log to it automatically; `/reflect` reads it.
 
-### Tier 2 — Additive (append, never replace)
+### Tier 2 - Additive (append, never replace)
 
 - **No CLAUDE.md** → copy `templates/CLAUDE.md`, fill in project name and
   description.
@@ -86,7 +86,7 @@ is applied unapproved.
   only.
 - **`.claude/rules/starter-patterns.md`** → the apply-on-touch file (Tier 4).
 
-### Tier 3 — Merge-required (developer approval per file)
+### Tier 3 - Merge-required (developer approval per file)
 
 **TypeScript:**
 
@@ -107,24 +107,24 @@ is applied unapproved.
   `templates/pyrightconfig.json`, run `ruff check`, report counts per rule
   family, and downgrade noisy families per-project rather than mass-fixing.
 - **`[tool.ruff]` in pyproject.toml** → merge the starter's `select`/`ignore`
-  lists into pyproject. Do **not** drop a standalone `ruff.toml` next to it —
+  lists into pyproject. Do **not** drop a standalone `ruff.toml` next to it -
   ruff.toml silently takes precedence and their existing config stops
   applying.
 - **mypy in use** → don't add pyright without asking; two type checkers
   disagree with each other more than they catch for each other.
 
 **Foundation templates (both stacks):** copy only where the pattern is absent
-— env boundary (`env.ts` / `env.py`), error registry (`errorIds.ts` /
+- env boundary (`env.ts` / `env.py`), error registry (`errorIds.ts` /
 `error_ids.py`), truncator (`truncate-for-context.ts` /
 `truncate_for_context.py`). Adapt import paths to the project's layout. Skip
 any the project already has an equivalent for.
 
-### Tier 4 — Gradual-only (never a bulk refactor)
+### Tier 4 - Gradual-only (never a bulk refactor)
 
 Write `.claude/rules/starter-patterns.md` with apply-on-touch guidance:
 
 ```markdown
-# Starter patterns — apply on touch
+# Starter patterns - apply on touch
 
 Apply these when already editing the relevant code. Never as a bulk refactor.
 

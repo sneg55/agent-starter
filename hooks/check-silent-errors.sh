@@ -1,13 +1,13 @@
 #!/bin/bash
 # Claude Code hook: block writes that introduce silent error handling.
-# PostToolUse on Write|Edit — exit 2 to block with stderr, exit 0 to pass.
+# PostToolUse on Write|Edit - exit 2 to block with stderr, exit 0 to pass.
 #
 # Catches: bare `except:`, `except: pass`, `except: ...`, empty `catch {}`,
 # and `catch` blocks whose only body is console.log (swallows errors with
 # a low-severity log).
 #
 # Rationale: LLMs routinely wrap code in try/except to make a test go green.
-# The code still breaks in prod — just silently. Every handler must either
+# The code still breaks in prod - just silently. Every handler must either
 # re-raise, return a sentinel, or log with context via console.error/warn.
 #
 # Exempt a single site with an inline comment:
@@ -26,14 +26,14 @@ VIOLATIONS=""
 
 case "$FILE_PATH" in
   *.py)
-    # Bare `except:` (no type). Portable ERE — BSD grep has no -P (PCRE).
+    # Bare `except:` (no type). Portable ERE - BSD grep has no -P (PCRE).
     if grep -nE '^[[:space:]]*except[[:space:]]*:' "$FILE_PATH" | grep -v 'silent-ok' > /tmp/silerr.$$ 2>/dev/null && [ -s /tmp/silerr.$$ ]; then
       VIOLATIONS="${VIOLATIONS}  Bare except:
 $(cat /tmp/silerr.$$)
 "
     fi
-    # except/pass, except/continue, except/... — heuristic two-line scan.
-    # POSIX classes only — BSD/one-true awk doesn't grok \s or \b.
+    # except/pass, except/continue, except/... - heuristic two-line scan.
+    # POSIX classes only - BSD/one-true awk doesn't grok \s or \b.
     # Exempt via '# silent-ok' on either the except or the body line.
     if awk '
       /^[[:space:]]*except([[:space:]]|:|$)/ { e=NR; eline=$0; next }
@@ -50,14 +50,14 @@ $(cat /tmp/silerr.$$)
     rm -f /tmp/silerr.$$
     ;;
   *.ts|*.tsx|*.js|*.jsx|*.mjs|*.cjs)
-    # Empty catch block: catch {} or catch (e) {}. Portable ERE — no -P on BSD grep.
+    # Empty catch block: catch {} or catch (e) {}. Portable ERE - no -P on BSD grep.
     if grep -nE 'catch[[:space:]]*(\([^)]*\))?[[:space:]]*\{[[:space:]]*\}' "$FILE_PATH" | grep -v 'silent-ok' > /tmp/silerr.$$ 2>/dev/null && [ -s /tmp/silerr.$$ ]; then
       VIOLATIONS="${VIOLATIONS}  Empty catch block:
 $(cat /tmp/silerr.$$)
 "
     fi
     # catch block whose next non-empty line is only console.log(...)
-    # POSIX classes only — BSD/one-true awk doesn't grok \s or \S.
+    # POSIX classes only - BSD/one-true awk doesn't grok \s or \S.
     # Exempt via '// silent-ok' on either the catch or the console.log line.
     if awk '
       /catch[[:space:]]*(\([^)]*\))?[[:space:]]*\{/ { c=NR; cline=$0; next }

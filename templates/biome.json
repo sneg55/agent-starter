@@ -1,6 +1,6 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
-  "//": "Biome config for AI-agent-driven TypeScript codebases. Pairs with eslint.config.mjs — Biome handles fast syntactic rules + formatting; ESLint keeps type-aware and plugin-specific rules. Rationale in guides/lint-rules-for-ai.md.",
+  "//": "Biome config for AI-agent-driven TypeScript codebases. Pairs with eslint.config.mjs - Biome handles fast syntactic rules + formatting; ESLint keeps type-aware and plugin-specific rules. Rationale in guides/lint-rules-for-ai.md.",
   "vcs": {
     "enabled": true,
     "clientKind": "git",

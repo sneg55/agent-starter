@@ -6,12 +6,12 @@ Derived from analyzing Anthropic's Claude Code CLI source (~1,900 files, 512K+ l
 
 ## 1. Directory Structure: Feature-Based, Not Layer-Based
 
-Don't organize by technical layer (all controllers in one folder, all models in another). Organize by feature — each feature gets its own directory with ALL related files.
+Don't organize by technical layer (all controllers in one folder, all models in another). Organize by feature - each feature gets its own directory with ALL related files.
 
 ```
 src/
 ├── tools/
-│   ├── BashTool/           # 18 files — everything about Bash in one place
+│   ├── BashTool/           # 18 files - everything about Bash in one place
 │   │   ├── BashTool.tsx    # Main implementation
 │   │   ├── toolName.ts     # Just the constant (breaks circular deps)
 │   │   ├── constants.ts    # Config values
@@ -44,7 +44,7 @@ src/
 
 ---
 
-## 2. Keep Files Small — Target 64% Under 200 Lines
+## 2. Keep Files Small - Target 64% Under 200 Lines
 
 Claude Code's own codebase file size distribution:
 
@@ -57,14 +57,14 @@ Claude Code's own codebase file size distribution:
 | 501-1000 lines | 163 | 9% |
 | >1000 lines | 88 | 5% |
 
-**64% of files are under 200 lines.** This is not an accident — it's designed for AI context windows.
+**64% of files are under 200 lines.** This is not an accident - it's designed for AI context windows.
 
 ### How to split files by concern:
 
 ```
 Feature/
-├── toolName.ts         # 2 lines — just the name constant
-├── constants.ts        # 10-30 lines — config values
+├── toolName.ts         # 2 lines - just the name constant
+├── constants.ts        # 10-30 lines - config values
 ├── types.ts            # Type definitions only
 ├── prompt.ts           # AI prompt text
 ├── permissions.ts      # Access control
@@ -79,24 +79,24 @@ Feature/
 
 ---
 
-## 3. Zero Magic Strings — Everything Gets a Constant
+## 3. Zero Magic Strings - Everything Gets a Constant
 
 Create a `constants/` directory and be religious about it:
 
 ```typescript
-// constants/xml.ts — ALL tag names
+// constants/xml.ts - ALL tag names
 export const COMMAND_NAME_TAG = 'command-name'
 export const BASH_INPUT_TAG = 'bash-input'
 
-// constants/errorIds.ts — numbered error codes
+// constants/errorIds.ts - numbered error codes
 export const E_TOOL_USE_FAILED = 341
 export const E_SUMMARY_GENERATION_FAILED = 344
-// Next ID: 345 — add new errors here with the next sequential number
+// Next ID: 345 - add new errors here with the next sequential number
 
-// constants/messages.ts — even single strings
+// constants/messages.ts - even single strings
 export const NO_CONTENT_MESSAGE = '(no content)'
 
-// Feature/toolName.ts — break circular deps
+// Feature/toolName.ts - break circular deps
 // This file exists to break circular dependency from prompt.ts
 export const BASH_TOOL_NAME = 'Bash'
 ```
@@ -135,24 +135,24 @@ export const TOOL_NAME = 'MyTool'
 
 ```
 Files:
-  PascalCase     — classes, components: BashTool.tsx, AppState.tsx
-  camelCase      — utilities, functions: bashPermissions.ts, envUtils.ts
-  kebab-case     — config/data files: cost-tracker.ts
+  PascalCase     - classes, components: BashTool.tsx, AppState.tsx
+  camelCase      - utilities, functions: bashPermissions.ts, envUtils.ts
+  kebab-case     - config/data files: cost-tracker.ts
 
 Directories:
-  PascalCase     — feature modules: BashTool/, PromptInput/
-  camelCase      — utility groups: bash/, plugins/
+  PascalCase     - feature modules: BashTool/, PromptInput/
+  camelCase      - utility groups: bash/, plugins/
 
 Types:
-  PascalCase     — with descriptive suffixes: ToolInputJSONSchema
+  PascalCase     - with descriptive suffixes: ToolInputJSONSchema
 
 Functions:
-  is/has prefix  — booleans: isENOENT(), hasExactErrorMessage()
-  get prefix     — getters: getErrnoCode(), getClaudeAiBaseUrl()
-  build prefix   — constructors: buildTool(), buildMemoryPrompt()
+  is/has prefix  - booleans: isENOENT(), hasExactErrorMessage()
+  get prefix     - getters: getErrnoCode(), getClaudeAiBaseUrl()
+  build prefix   - constructors: buildTool(), buildMemoryPrompt()
 
 Constants:
-  SCREAMING_SNAKE — values: DEFAULT_MAX_RESULT_SIZE_CHARS
+  SCREAMING_SNAKE - values: DEFAULT_MAX_RESULT_SIZE_CHARS
 ```
 
 ### The "Intentionally Long Name" Pattern
@@ -179,7 +179,7 @@ export class AbortError extends AppError { }
 export class ConfigParseError extends AppError { }
 export class ShellError extends AppError { }
 
-// Safe error extraction — never use (e as SomeType)
+// Safe error extraction - never use (e as SomeType)
 export function toError(e: unknown): Error { ... }
 export function errorMessage(e: unknown): string { ... }
 export function getErrnoCode(e: unknown): string | undefined { ... }
@@ -199,7 +199,7 @@ export const E_NETWORK_TIMEOUT = 102
 
 ---
 
-## 7. CLAUDE.md Hierarchy — 4 Layers
+## 7. CLAUDE.md Hierarchy - 4 Layers
 
 Set up instructions at multiple levels of specificity:
 
@@ -256,11 +256,11 @@ const AdvancedTool = FEATURE_ENABLED
 Never use `process.env.X` directly throughout the codebase:
 
 ```typescript
-// utils/envUtils.ts — centralize ALL env access
+// utils/envUtils.ts - centralize ALL env access
 export function isEnvTruthy(val: string | undefined): boolean { ... }
 export function isEnvDefinedFalsy(val: string | undefined): boolean { ... }
 
-// utils/envValidation.ts — validated with defaults and bounds
+// utils/envValidation.ts - validated with defaults and bounds
 export function validateBoundedIntEnvVar(
   name: string,
   defaultValue: number,
@@ -273,7 +273,7 @@ applySafeConfigEnvironmentVariables()   // Phase 1: before trust dialog
 applyConfigEnvironmentVariables()        // Phase 2: after trust established
 ```
 
-**Enforce with a lint rule:** `custom-rules/no-process-env-top-level` — prevents raw env access at module scope.
+**Enforce with a lint rule:** `custom-rules/no-process-env-top-level` - prevents raw env access at module scope.
 
 ---
 
@@ -295,24 +295,24 @@ custom-rules/
 ## 11. Documentation: WHY, Not WHAT
 
 ```typescript
-// BAD — explains what (the code already says this)
+// BAD - explains what (the code already says this)
 // Increment the counter by one
 counter++
 
-// GOOD — explains why (non-obvious constraint)
+// GOOD - explains why (non-obvious constraint)
 // The SDK class is checked via instanceof because minified builds mangle
 // class names, making constructor.name unreliable
 if (error instanceof AnthropicError) { ... }
 
-// GOOD — section headers for navigation in large files
+// GOOD - section headers for navigation in large files
 // ============================================================================
 // Permission Modes
 // ============================================================================
 
-// GOOD — @[TAG] markers for coordinated updates
-// @[MODEL LAUNCH] — update this when adding new model support
+// GOOD - @[TAG] markers for coordinated updates
+// @[MODEL LAUNCH] - update this when adding new model support
 
-// GOOD — design intent at file level
+// GOOD - design intent at file level
 /** DESIGN: This module has NO dependencies to avoid import cycles. */
 ```
 
@@ -323,14 +323,14 @@ if (error instanceof AnthropicError) { ... }
 Don't maintain a central switch/if-else for extensibility:
 
 ```typescript
-// BAD — adding a tool means editing a central file
+// BAD - adding a tool means editing a central file
 switch (toolName) {
   case 'bash': return new BashTool()
   case 'grep': return new GrepTool()
   // ... 40 more cases
 }
 
-// GOOD — each module registers itself
+// GOOD - each module registers itself
 // BashTool/index.ts
 registerTool(BashTool)
 
@@ -352,7 +352,7 @@ registerBundledSkill({
 ```typescript
 import { memoize } from 'lodash-es'
 
-// Platform detection, config reads, git queries — compute once
+// Platform detection, config reads, git queries - compute once
 export const getProjectDir = memoize((cwd: string) => {
   // expensive git root detection
 })

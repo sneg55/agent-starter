@@ -1,6 +1,6 @@
 # Ruff config tuned for AI-agent Python codebases. See guides/lint-rules-for-ai.md.
 # Ruff plays the Biome role: formatting + fast syntactic rules, with autofix.
-# Pyright plays the ESLint role: type-aware analysis — see pyrightconfig.json.
+# Pyright plays the ESLint role: type-aware analysis - see pyrightconfig.json.
 #
 # Pairs with hooks/lint-on-edit.sh, which runs `ruff check --fix` then
 # `ruff format` on every .py write.
@@ -11,33 +11,33 @@ src = ["src", "tests"]
 
 [lint]
 select = [
-  # ── Tier 1 — correctness ──────────────────────────────────────────────────
+  # ── Tier 1 - correctness ──────────────────────────────────────────────────
   "F",       # pyflakes: undefined names, unused imports/vars, redefinitions
   "E",       # pycodestyle errors (includes E722 bare except)
   "W",       # pycodestyle warnings
   "B",       # bugbear: mutable default args, useless expressions, raise-without-from
   "A",       # builtins shadowing (def id(...), list = ...)
-  "RET",     # inconsistent/unreachable returns — half-finished functions
+  "RET",     # inconsistent/unreachable returns - half-finished functions
   "ASYNC",   # blocking calls (time.sleep, sync open/subprocess) inside async def
   "DTZ",     # naive datetimes
-  "ISC",     # implicit string concatenation — a common LLM typo
-  "TRY002",  # raise Exception(...) — use AppError (see error-id-registry guide)
-  # ── Tier 2 — imports & dependencies ───────────────────────────────────────
+  "ISC",     # implicit string concatenation - a common LLM typo
+  "TRY002",  # raise Exception(...) - use AppError (see error-id-registry guide)
+  # ── Tier 2 - imports & dependencies ───────────────────────────────────────
   "I",       # isort
-  "TID",     # tidy imports — bans ../../-style relative import sprawl
-  # ── Tier 3 — agent-specific traps ─────────────────────────────────────────
+  "TID",     # tidy imports - bans ../../-style relative import sprawl
+  # ── Tier 3 - agent-specific traps ─────────────────────────────────────────
   "T10",     # leftover breakpoint()/pdb
   "T20",     # leftover print()/pprint()
   "ERA",     # commented-out code
   "BLE",     # blind `except Exception` that swallows
   "PGH",     # blanket `# noqa` / `# type: ignore` without a specific code
   "RUF",     # ruff-specific: mutable class defaults, unused noqa
-  # ── Tier 4 — complexity (cognitive, not line count) ───────────────────────
+  # ── Tier 4 - complexity (cognitive, not line count) ───────────────────────
   "C90",     # mccabe
-  # ── Tier 5 — security ─────────────────────────────────────────────────────
+  # ── Tier 5 - security ─────────────────────────────────────────────────────
   "S",       # bandit
-  # ── Tier 6 — style (lean, semantic only) ──────────────────────────────────
-  "UP",      # pyupgrade — modern syntax for target-version
+  # ── Tier 6 - style (lean, semantic only) ──────────────────────────────────
+  "UP",      # pyupgrade - modern syntax for target-version
   "C4",      # comprehension simplifications
   "SIM",     # simplify: collapsible ifs, redundant bool casts
   "PIE",     # misc: unnecessary pass, duplicate class fields
@@ -46,12 +46,12 @@ select = [
   "ARG",     # unused function arguments
 ]
 ignore = [
-  # Formatter owns layout — these conflict with `ruff format`.
+  # Formatter owns layout - these conflict with `ruff format`.
   "E111", "E114", "E117", "E501", "W191", "ISC001",
 ]
 
 [lint.mccabe]
-# The signal that correlates with "hard to read". No max-lines caps —
+# The signal that correlates with "hard to read". No max-lines caps -
 # line caps cause over-extraction into incoherent helpers (see guide).
 max-complexity = 15
 

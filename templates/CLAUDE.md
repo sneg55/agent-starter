@@ -17,28 +17,28 @@ There are four discrete types. Only save information that is NOT derivable from 
 
 Examples:
 - "I'm a data scientist investigating what logging we have in place" → save: user is a data scientist, currently focused on observability/logging
-- "I've been writing Go for ten years but this is my first time touching the React side" → save: deep Go expertise, new to React — frame frontend explanations in terms of backend analogues
+- "I've been writing Go for ten years but this is my first time touching the React side" → save: deep Go expertise, new to React - frame frontend explanations in terms of backend analogues
 
 ### feedback
-**What it stores:** Guidance the user has given about how to approach work — both what to avoid AND what to keep doing.
-**When to save:** Any time the user corrects your approach ("no not that", "don't", "stop doing X") OR confirms a non-obvious approach worked ("yes exactly", "perfect, keep doing that"). Corrections are easy to notice; confirmations are quieter — watch for them.
+**What it stores:** Guidance the user has given about how to approach work - both what to avoid AND what to keep doing.
+**When to save:** Any time the user corrects your approach ("no not that", "don't", "stop doing X") OR confirms a non-obvious approach worked ("yes exactly", "perfect, keep doing that"). Corrections are easy to notice; confirmations are quieter - watch for them.
 **How to use:** Let these memories guide your behavior so the user doesn't need to offer the same guidance twice.
 **Structure:** Lead with the rule, then a **Why:** line and a **How to apply:** line. Knowing why lets you judge edge cases.
 
 Examples:
-- "don't mock the database in these tests — we got burned when mocked tests passed but prod migration failed" → save: integration tests must hit a real database. Why: mock/prod divergence masked a broken migration. How to apply: all test files in this repo use real DB connections.
+- "don't mock the database in these tests - we got burned when mocked tests passed but prod migration failed" → save: integration tests must hit a real database. Why: mock/prod divergence masked a broken migration. How to apply: all test files in this repo use real DB connections.
 - "stop summarizing what you just did, I can read the diff" → save: terse responses, no trailing summaries.
-- "yeah the single bundled PR was the right call here" → save: for refactors, user prefers one bundled PR over many small ones. Confirmed approach — not a correction.
+- "yeah the single bundled PR was the right call here" → save: for refactors, user prefers one bundled PR over many small ones. Confirmed approach - not a correction.
 
 ### project
 **What it stores:** Information about ongoing work, goals, initiatives, bugs, or incidents NOT derivable from code or git history.
 **When to save:** When you learn who is doing what, why, or by when. Always convert relative dates to absolute (e.g., "Thursday" → "2026-03-05").
 **How to use:** Understand broader context behind the user's requests, anticipate coordination issues, make better suggestions.
-**Structure:** Lead with the fact/decision, then **Why:** and **How to apply:** lines. Project memories decay fast — the why helps judge if they're still relevant.
+**Structure:** Lead with the fact/decision, then **Why:** and **How to apply:** lines. Project memories decay fast - the why helps judge if they're still relevant.
 
 Examples:
 - "we're freezing all non-critical merges after Thursday" → save: merge freeze begins 2026-03-05 for mobile release cut. Flag non-critical PRs after that date.
-- "ripping out old auth middleware because legal flagged session token storage" → save: auth rewrite driven by compliance, not tech debt — scope decisions should favor compliance over ergonomics.
+- "ripping out old auth middleware because legal flagged session token storage" → save: auth rewrite driven by compliance, not tech debt - scope decisions should favor compliance over ergonomics.
 
 ### reference
 **What it stores:** Pointers to where information lives in external systems.
@@ -47,17 +47,17 @@ Examples:
 
 Examples:
 - "check Linear project INGEST for pipeline bugs" → save: pipeline bugs tracked in Linear project "INGEST"
-- "grafana.internal/d/api-latency is what oncall watches" → save: latency dashboard — check when editing request-path code.
+- "grafana.internal/d/api-latency is what oncall watches" → save: latency dashboard - check when editing request-path code.
 
 ## What NOT to Save
 
-- Code patterns, conventions, architecture, file paths, or project structure — derivable by reading the project
-- Git history, recent changes, who-changed-what — `git log` / `git blame` are authoritative
-- Debugging solutions or fix recipes — the fix is in the code, commit message has context
+- Code patterns, conventions, architecture, file paths, or project structure - derivable by reading the project
+- Git history, recent changes, who-changed-what - `git log` / `git blame` are authoritative
+- Debugging solutions or fix recipes - the fix is in the code, commit message has context
 - Anything already documented in CLAUDE.md files
 - Ephemeral task details: in-progress work, temporary state, current conversation context
 
-These exclusions apply even when the user explicitly asks. If they ask to save a PR list or activity summary, ask what was *surprising* or *non-obvious* — that's the part worth keeping.
+These exclusions apply even when the user explicitly asks. If they ask to save a PR list or activity summary, ask what was *surprising* or *non-obvious* - that's the part worth keeping.
 
 ## Memory File Format
 
@@ -66,17 +66,17 @@ Each memory is its own `.md` file with YAML frontmatter:
 ```markdown
 ---
 name: {{memory name}}
-description: {{one-line description — be specific, used to decide relevance in future conversations}}
+description: {{one-line description - be specific, used to decide relevance in future conversations}}
 type: {{user, feedback, project, reference}}
 ---
 
-{{memory content — for feedback/project types: rule/fact, then **Why:** and **How to apply:** lines}}
+{{memory content - for feedback/project types: rule/fact, then **Why:** and **How to apply:** lines}}
 ```
 
 ### Saving Process
 1. Write the memory to its own file (e.g., `user_role.md`, `feedback_testing.md`)
-2. Add a one-line pointer in `MEMORY.md`: `- [Title](file.md) — one-line hook`
-3. Keep `MEMORY.md` under 200 lines — it's an index, not a dump
+2. Add a one-line pointer in `MEMORY.md`: `- [Title](file.md) - one-line hook`
+3. Keep `MEMORY.md` under 200 lines - it's an index, not a dump
 
 ### Maintenance
 - Keep name, description, and type fields up-to-date with content
@@ -106,24 +106,24 @@ A memory that summarizes repo state is frozen in time. For *recent* or *current*
 
 Periodically review and consolidate memories:
 
-### Phase 1 — Orient
+### Phase 1 - Orient
 - List the memory directory to see what exists
 - Read MEMORY.md to understand the current index
 - Skim existing topic files to improve rather than duplicate
 
-### Phase 2 — Gather
+### Phase 2 - Gather
 - Check for new information worth persisting
 - Look for existing memories that contradict current codebase state
 - Search transcripts narrowly for specific context if needed
 
-### Phase 3 — Consolidate
+### Phase 3 - Consolidate
 - Merge new signal into existing topic files (don't create near-duplicates)
 - Convert relative dates to absolute dates
 - Delete contradicted facts at the source
 
-### Phase 4 — Prune
+### Phase 4 - Prune
 - Keep MEMORY.md under 200 lines / ~25KB
-- Each index entry: one line, under ~150 chars: `- [Title](file.md) — one-line hook`
+- Each index entry: one line, under ~150 chars: `- [Title](file.md) - one-line hook`
 - Remove pointers to stale/superseded memories
 - Resolve contradictions between files
 
@@ -140,24 +140,24 @@ Periodically review and consolidate memories:
 
 While working a multi-step task against a spec, maintain a running `<spec>-implementation-notes.md` in the same folder as the spec (where `<spec>` is the spec file's base name). Capture anything the developer should know about how the implementation diverges from or interprets the spec:
 
-- **Design decisions** — choices you made where the spec was ambiguous
-- **Deviations** — places where you intentionally departed from the spec, and why
-- **Tradeoffs** — alternatives you considered and why you picked what you did
-- **Open questions** — anything you'd want the developer to confirm or revise
+- **Design decisions** - choices you made where the spec was ambiguous
+- **Deviations** - places where you intentionally departed from the spec, and why
+- **Tradeoffs** - alternatives you considered and why you picked what you did
+- **Open questions** - anything you'd want the developer to confirm or revise
 
-Append entries as decisions come up — don't reconstruct them at the end. Keep each entry short. This is a working document scoped to the task, not permanent docs: once the developer has reviewed it and the work is merged, the file can be deleted or archived.
+Append entries as decisions come up - don't reconstruct them at the end. Keep each entry short. This is a working document scoped to the task, not permanent docs: once the developer has reviewed it and the work is merged, the file can be deleted or archived.
 
 ## Self-improvement loop
 
 This project captures its own signal and improves from it. You do not need to do
-anything special during normal work — the loop runs around you.
+anything special during normal work - the loop runs around you.
 
 - **Signal:** the enforcement hooks append a JSON event to `.harness/ledger.jsonl`
   every time one blocks or warns (file too large, lint failure, silent error,
-  edit-before-read). The raw ledger is gitignored — it is local and noisy.
+  edit-before-read). The raw ledger is gitignored - it is local and noisy.
 - **Reflect:** run `/reflect` periodically. It reads the ledger via
   `harness-ledger-stats.sh`, finds recurring `(rule, path-prefix)` clusters, reads
-  your `feedback` memories, and proposes concrete changes — a new project rule
+  your `feedback` memories, and proposes concrete changes - a new project rule
   below, a hook threshold tweak, a lint rule, or an ADR. Nothing is applied without
   your approval.
 - **Measure:** each reflection writes `.harness/reflections/YYYY-MM-DD.md` with a

@@ -4,7 +4,7 @@ Rules:
   1. This file is the ONLY place environment variables are read.
      (Grep for `os.environ` in review; nothing outside this file may use it.)
   2. The Env model is the source of truth for the config type.
-  3. Validation happens at import time — fail fast on misconfiguration.
+  3. Validation happens at import time - fail fast on misconfiguration.
   4. Add new vars here, declare their shape, provide a default where sensible.
 
 Consumers:
@@ -31,7 +31,7 @@ class Env(BaseSettings):
     port: int = Field(default=3000, gt=0)
     log_level: Literal["debug", "info", "warning", "error"] = "info"
 
-    # ── External services (examples — replace with your own) ─────────────────
+    # ── External services (examples - replace with your own) ─────────────────
     # (noqa ERA001: these are intentional commented examples, not dead code)
     # database_url: PostgresDsn  # noqa: ERA001
     # redis_url: RedisDsn | None = None  # noqa: ERA001
@@ -46,7 +46,7 @@ def _load_env() -> Env:
         # Render a readable error at startup. One bad env var should surface the
         # exact field and reason, not crash 10 stack frames deep.
         lines = [f"  {'.'.join(str(p) for p in err['loc'])}: {err['msg']}" for err in e.errors()]
-        print(  # noqa: T201 — startup error; must reach stderr.
+        print(  # noqa: T201 - startup error; must reach stderr.
             "[env] invalid configuration:\n" + "\n".join(lines),
             file=sys.stderr,
         )

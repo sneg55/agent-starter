@@ -6,7 +6,7 @@ Extracted from Claude Code's own tool implementations (`BashTool/`, `FileEditToo
 
 ```
 src/tools/MyTool/
-├── MyTool.ts          # The handler — glues the pieces together
+├── MyTool.ts          # The handler - glues the pieces together
 ├── toolName.ts        # Just the name constant (see "Why separate")
 ├── schema.ts          # Zod input schema (types inferred from it)
 ├── prompt.ts          # The instruction string the LLM sees
@@ -18,7 +18,7 @@ src/tools/MyTool/
 ├── constants.ts       # Timeouts, limits, magic strings
 ├── errors.ts          # Tool-specific error IDs + classes
 ├── UI.tsx             # Optional: how results render in a TUI
-└── index.ts           # Barrel export — only what callers need
+└── index.ts           # Barrel export - only what callers need
 ```
 
 Not every tool needs all of these. A read-only tool skips `permissions.ts` and `security.ts`. A silent tool skips `UI.tsx`. But the *slots* are always in the same place, so an agent editing an unfamiliar tool knows where to look.
@@ -78,7 +78,7 @@ export const tools = {
 } as const
 ```
 
-No `switch (name) { case "my_tool": …}` dispatch. Adding a tool is a one-line change here plus a new directory. The large-codebase guide covers this pattern (§12) — this is its highest-ROI application.
+No `switch (name) { case "my_tool": …}` dispatch. Adding a tool is a one-line change here plus a new directory. The large-codebase guide covers this pattern (§12) - this is its highest-ROI application.
 
 ## Testing shape
 
@@ -87,9 +87,9 @@ Tests live next to the tool, mirroring the file split:
 ```
 src/tools/MyTool/
 ├── __tests__/
-│   ├── validation.test.ts   # Pure input tests — no mocks
-│   ├── permissions.test.ts  # Policy tests — inject ctx
-│   ├── security.test.ts     # Invariant tests — inject ctx
+│   ├── validation.test.ts   # Pure input tests - no mocks
+│   ├── permissions.test.ts  # Policy tests - inject ctx
+│   ├── security.test.ts     # Invariant tests - inject ctx
 │   └── MyTool.test.ts       # End-to-end: mocks execute()
 ```
 
@@ -103,7 +103,7 @@ Default: stay inline until a file passes ~150 lines or picks up a second respons
 - Error IDs → `errors.ts`
 - A second validation path → `validation.ts`
 
-Don't pre-split. An empty `security.ts` is worse than an inline check — it signals "this tool has a security story" when it doesn't.
+Don't pre-split. An empty `security.ts` is worse than an inline check - it signals "this tool has a security story" when it doesn't.
 
 ## What this buys an agent
 
@@ -118,9 +118,9 @@ Identical slots, snake_case modules:
 
 ```
 src/tools/my_tool/
-├── __init__.py        # Barrel export — only what callers need
+├── __init__.py        # Barrel export - only what callers need
 ├── handler.py         # The thin orchestrator (MyTool.ts equivalent)
-├── tool_name.py       # Just the name constant — leaf module, zero imports
+├── tool_name.py       # Just the name constant - leaf module, zero imports
 ├── schema.py          # Pydantic input model (types come from it)
 ├── prompt.py          # The instruction string the LLM sees
 ├── validation.py      # Input checks beyond schema
