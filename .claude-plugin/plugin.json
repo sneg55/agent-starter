@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin.json",
+  "name": "agent-starter",
+  "version": "0.3.0",
+  "description": "Skills, hooks, templates, and engineering guides for bootstrapping AI-agent-friendly projects, with a per-project self-improvement loop.",
+  "author": {
+    "name": "Nick Sawinyh"
+  },
+  "homepage": "https://github.com/sneg55/agent-starter",
+  "repository": "https://github.com/sneg55/agent-starter",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "skills",
+    "hooks",
+    "scaffolding",
+    "templates",
+    "new-project",
+    "adopt-project",
+    "self-improvement",
+    "best-practices"
+  ]
+}

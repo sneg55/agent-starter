@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "agent-starter",
+  "owner": {
+    "name": "Nick Sawinyh"
+  },
+  "metadata": {
+    "description": "Toolkit of skills, hooks, templates, and guides for bootstrapping AI-agent-friendly projects.",
+    "version": "0.3.0"
+  },
+  "plugins": [
+    {
+      "name": "agent-starter",
+      "source": "./",
+      "description": "Skills, hooks, templates, and engineering guides for bootstrapping AI-agent-friendly projects, with a per-project self-improvement loop. Bundles the /new-project and /adopt-project scaffolding skills plus commit, simplify, reflect, remember, and dream.",
+      "version": "0.3.0",
+      "author": {
+        "name": "Nick Sawinyh"
+      },
+      "homepage": "https://github.com/sneg55/agent-starter",
+      "repository": "https://github.com/sneg55/agent-starter",
+      "license": "MIT",
+      "category": "scaffolding",
+      "keywords": [
+        "claude-code",
+        "skills",
+        "hooks",
+        "scaffolding",
+        "templates",
+        "new-project",
+        "adopt-project",
+        "self-improvement",
+        "best-practices"
+      ]
+    }
+  ]
+}
