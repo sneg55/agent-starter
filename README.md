@@ -31,6 +31,15 @@ git clone https://github.com/sneg55/agent-starter && cd agent-starter
 ./install.sh   # add --with-read-guard for the read-before-edit pair
 ```
 
+Or install every skill at once as a **Claude Code plugin** - this repo doubles as a plugin marketplace:
+
+```
+/plugin marketplace add sneg55/agent-starter
+/plugin install agent-starter@agent-starter
+```
+
+That loads all the skills (`/new-project`, `/adopt-project`, `/commit`, `/simplify`, `/reflect`, `/remember`, `/dream`). Hooks are still wired via `install.sh` above.
+
 ## Guides
 
 ### `guides/large-codebase-best-practices.md`
