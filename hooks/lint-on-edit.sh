@@ -52,6 +52,24 @@ case "$FILE_PATH" in
     # Formatting parity with Biome's --write. Best-effort: format only fails on
     # syntax errors, which check already reported, so never block on it.
     "$RUFF" format --quiet "$FILE_PATH" >/dev/null 2>&1 || true
+    # Type-check with mypy (the type-aware step, like tsc on the TS path).
+    # Whole-file mypy resolves imports and can be slow, so gate it behind the
+    # same opt-in marker as tsc: touch .claude/enable-typecheck-on-edit.
+    if [ -f .claude/enable-typecheck-on-edit ]; then
+      MYPY=""
+      if [ -x .venv/bin/mypy ]; then
+        MYPY=.venv/bin/mypy
+      elif command -v mypy >/dev/null 2>&1; then
+        MYPY=mypy
+      fi
+      if [ -n "$MYPY" ]; then
+        if ! MYPY_OUT=$("$MYPY" "$FILE_PATH" 2>&1); then
+          printf 'mypy errors in %s:\n%s\n' "$FILE_PATH" "$MYPY_OUT" >&2
+          [ -x "$HOOK_DIR/lib/log-event.sh" ] && "$HOOK_DIR/lib/log-event.sh" lint block "$FILE_PATH" "mypy typecheck failed"
+          exit 2
+        fi
+      fi
+    fi
     exit 0
     ;;
   *.ts|*.tsx|*.js|*.jsx|*.mjs|*.cjs) ;;
