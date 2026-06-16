@@ -59,6 +59,18 @@ if command -v mypy >/dev/null 2>&1; then
   ARGUMENTS="{\"file_path\":\"$tmp/src/clean.py\"}" bash "$HOOK" 2>/dev/null; rc=$?
   assert_eq 0 "$rc" "mypy passes a type-clean file"
   rm -rf "$tmp"
+
+  # Case 5: mypy-only project (ruff absent) must still type-check. Build a PATH
+  # that exposes mypy but not ruff to prove mypy no longer depends on ruff.
+  MYPY_BIN=$(command -v mypy)
+  fakebin=$(mktemp -d)
+  ln -s "$MYPY_BIN" "$fakebin/mypy"
+  tmp=$(mktemp -d)
+  mkdir -p "$tmp/.git" "$tmp/src" "$tmp/.claude" && touch "$tmp/.claude/enable-typecheck-on-edit"
+  printf 'x: int = "not an int"\nprint(x)\n' > "$tmp/src/typeerr.py"
+  PATH="$fakebin:/usr/bin:/bin" ARGUMENTS="{\"file_path\":\"$tmp/src/typeerr.py\"}" bash "$HOOK" 2>/dev/null; rc=$?
+  assert_eq 2 "$rc" "mypy blocks type error when ruff is unavailable"
+  rm -rf "$tmp" "$fakebin"
 else
   echo "  (mypy not installed - skipping mypy typecheck cases)"
 fi

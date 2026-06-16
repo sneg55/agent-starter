@@ -43,15 +43,18 @@ case "$FILE_PATH" in
     elif command -v ruff >/dev/null 2>&1; then
       RUFF=ruff
     fi
-    [ -z "$RUFF" ] && exit 0
-    if ! RUFF_OUT=$("$RUFF" check --fix "$FILE_PATH" 2>&1); then
-      printf 'Ruff errors in %s:\n%s\n' "$FILE_PATH" "$RUFF_OUT" >&2
-      [ -x "$HOOK_DIR/lib/log-event.sh" ] && "$HOOK_DIR/lib/log-event.sh" lint block "$FILE_PATH" "ruff check failed"
-      exit 2
+    # Ruff is best-effort: run it when present, but don't exit early if it's
+    # missing - the mypy type-check below must still run for mypy-only projects.
+    if [ -n "$RUFF" ]; then
+      if ! RUFF_OUT=$("$RUFF" check --fix "$FILE_PATH" 2>&1); then
+        printf 'Ruff errors in %s:\n%s\n' "$FILE_PATH" "$RUFF_OUT" >&2
+        [ -x "$HOOK_DIR/lib/log-event.sh" ] && "$HOOK_DIR/lib/log-event.sh" lint block "$FILE_PATH" "ruff check failed"
+        exit 2
+      fi
+      # Formatting parity with Biome's --write. Best-effort: format only fails on
+      # syntax errors, which check already reported, so never block on it.
+      "$RUFF" format --quiet "$FILE_PATH" >/dev/null 2>&1 || true
     fi
-    # Formatting parity with Biome's --write. Best-effort: format only fails on
-    # syntax errors, which check already reported, so never block on it.
-    "$RUFF" format --quiet "$FILE_PATH" >/dev/null 2>&1 || true
     # Type-check with mypy (the type-aware step, like tsc on the TS path).
     # Whole-file mypy resolves imports and can be slow, so gate it behind the
     # same opt-in marker as tsc: touch .claude/enable-typecheck-on-edit.
