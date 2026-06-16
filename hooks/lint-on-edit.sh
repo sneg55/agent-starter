@@ -43,15 +43,51 @@ case "$FILE_PATH" in
     elif command -v ruff >/dev/null 2>&1; then
       RUFF=ruff
     fi
-    [ -z "$RUFF" ] && exit 0
-    if ! RUFF_OUT=$("$RUFF" check --fix "$FILE_PATH" 2>&1); then
-      printf 'Ruff errors in %s:\n%s\n' "$FILE_PATH" "$RUFF_OUT" >&2
-      [ -x "$HOOK_DIR/lib/log-event.sh" ] && "$HOOK_DIR/lib/log-event.sh" lint block "$FILE_PATH" "ruff check failed"
-      exit 2
+    # Ruff is best-effort: run it when present, but don't exit early if it's
+    # missing - the mypy type-check below must still run for mypy-only projects.
+    if [ -n "$RUFF" ]; then
+      if ! RUFF_OUT=$("$RUFF" check --fix "$FILE_PATH" 2>&1); then
+        printf 'Ruff errors in %s:\n%s\n' "$FILE_PATH" "$RUFF_OUT" >&2
+        [ -x "$HOOK_DIR/lib/log-event.sh" ] && "$HOOK_DIR/lib/log-event.sh" lint block "$FILE_PATH" "ruff check failed"
+        exit 2
+      fi
+      # Formatting parity with Biome's --write. Best-effort: format only fails on
+      # syntax errors, which check already reported, so never block on it.
+      "$RUFF" format --quiet "$FILE_PATH" >/dev/null 2>&1 || true
     fi
-    # Formatting parity with Biome's --write. Best-effort: format only fails on
-    # syntax errors, which check already reported, so never block on it.
-    "$RUFF" format --quiet "$FILE_PATH" >/dev/null 2>&1 || true
+    # Type-check with mypy (the type-aware step, like tsc on the TS path).
+    # Whole-file mypy resolves imports and can be slow, so gate it behind the
+    # same opt-in marker as tsc: touch .claude/enable-typecheck-on-edit.
+    if [ -f .claude/enable-typecheck-on-edit ]; then
+      MYPY=""
+      if [ -x .venv/bin/mypy ]; then
+        MYPY=.venv/bin/mypy
+      elif command -v mypy >/dev/null 2>&1; then
+        MYPY=mypy
+      else
+        # The marker is the user's consent to type-check, so install mypy when
+        # it's missing rather than silently skipping. Prefer the project venv.
+        if [ -x .venv/bin/pip ]; then
+          .venv/bin/pip install --quiet mypy >/dev/null 2>&1
+          [ -x .venv/bin/mypy ] && MYPY=.venv/bin/mypy
+        elif command -v pip3 >/dev/null 2>&1; then
+          pip3 install --quiet mypy >/dev/null 2>&1 && command -v mypy >/dev/null 2>&1 && MYPY=mypy
+        elif command -v pip >/dev/null 2>&1; then
+          pip install --quiet mypy >/dev/null 2>&1 && command -v mypy >/dev/null 2>&1 && MYPY=mypy
+        elif command -v python3 >/dev/null 2>&1; then
+          python3 -m pip install --quiet mypy >/dev/null 2>&1 && command -v mypy >/dev/null 2>&1 && MYPY=mypy
+        fi
+        # Install can fail (no network, no pip). Warn without blocking the edit.
+        [ -z "$MYPY" ] && printf 'mypy not installed and auto-install failed; skipping type-check for %s. Install mypy to enable (e.g. `pip install mypy`).\n' "$FILE_PATH" >&2
+      fi
+      if [ -n "$MYPY" ]; then
+        if ! MYPY_OUT=$("$MYPY" "$FILE_PATH" 2>&1); then
+          printf 'mypy errors in %s:\n%s\n' "$FILE_PATH" "$MYPY_OUT" >&2
+          [ -x "$HOOK_DIR/lib/log-event.sh" ] && "$HOOK_DIR/lib/log-event.sh" lint block "$FILE_PATH" "mypy typecheck failed"
+          exit 2
+        fi
+      fi
+    fi
     exit 0
     ;;
   *.ts|*.tsx|*.js|*.jsx|*.mjs|*.cjs) ;;
