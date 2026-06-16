@@ -24,6 +24,8 @@ Then: `/new-project`
 
 For an **existing** project, say **"read this repo and apply it to my project"** - the agent reads `ADOPT.md` and runs an audit-first, opt-in adoption (nothing overwritten, everything on a branch). Or install the skills the same way and run `/adopt-project`.
 
+For a **whole team** - making everyone get the same setup from a `git pull` (vendored hooks, shared config, plugin defaults) - see [`TEAM.md`](TEAM.md). It's the companion to `ADOPT.md`: where ADOPT.md installs into one developer's `~/.claude`, TEAM.md ships the setup with the repo.
+
 To install just the hooks (with their `settings.json` wiring merged idempotently via jq):
 
 ```bash

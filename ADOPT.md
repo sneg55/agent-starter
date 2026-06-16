@@ -163,3 +163,10 @@ Confirm each item before reporting done:
 - [ ] `.harness/ledger.jsonl` gitignored, if the loop was adopted
 - [ ] Contradictions surfaced and the developer's choices recorded
       (in CLAUDE.md or the implementation notes)
+
+## Rolling out to a team
+
+The steps above install into **one developer's `~/.claude`**. To make the whole
+team get the same setup from a `git pull` - vendoring hooks into the repo with
+portable wiring, sharing `.claude/` config via `.gitignore`, handling the ledger
+in a monorepo, and defaulting plugins - see [`TEAM.md`](TEAM.md).
