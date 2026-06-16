@@ -61,6 +61,21 @@ case "$FILE_PATH" in
         MYPY=.venv/bin/mypy
       elif command -v mypy >/dev/null 2>&1; then
         MYPY=mypy
+      else
+        # The marker is the user's consent to type-check, so install mypy when
+        # it's missing rather than silently skipping. Prefer the project venv.
+        if [ -x .venv/bin/pip ]; then
+          .venv/bin/pip install --quiet mypy >/dev/null 2>&1
+          [ -x .venv/bin/mypy ] && MYPY=.venv/bin/mypy
+        elif command -v pip3 >/dev/null 2>&1; then
+          pip3 install --quiet mypy >/dev/null 2>&1 && command -v mypy >/dev/null 2>&1 && MYPY=mypy
+        elif command -v pip >/dev/null 2>&1; then
+          pip install --quiet mypy >/dev/null 2>&1 && command -v mypy >/dev/null 2>&1 && MYPY=mypy
+        elif command -v python3 >/dev/null 2>&1; then
+          python3 -m pip install --quiet mypy >/dev/null 2>&1 && command -v mypy >/dev/null 2>&1 && MYPY=mypy
+        fi
+        # Install can fail (no network, no pip). Warn without blocking the edit.
+        [ -z "$MYPY" ] && printf 'mypy not installed and auto-install failed; skipping type-check for %s. Install mypy to enable (e.g. `pip install mypy`).\n' "$FILE_PATH" >&2
       fi
       if [ -n "$MYPY" ]; then
         if ! MYPY_OUT=$("$MYPY" "$FILE_PATH" 2>&1); then
