@@ -1,7 +1,7 @@
 # Rolling agent-starter out to a whole team
 
 `ADOPT.md` retrofits agent-starter onto an existing codebase **on one
-developer's machine** — it installs hooks and skills into `~/.claude`, which is
+developer's machine** - it installs hooks and skills into `~/.claude`, which is
 per-user and does not travel. This file is the companion for the next question:
 **how do you make the whole team get the same setup from a `git pull`?**
 
@@ -25,7 +25,7 @@ touch anything:
 The single biggest decision is **hooks**: ship them per-machine (lighter, stays
 in sync with upstream, but every dev must run `install.sh` and they fire in
 *other* projects too) or **vendor them into the repo** (deterministic, zero
-per-dev setup, no version drift — at the cost of a manual upstream bump). For a
+per-dev setup, no version drift - at the cost of a manual upstream bump). For a
 team, prefer vendoring.
 
 ## Vendoring the hooks (the portable way)
@@ -46,7 +46,7 @@ Instead:
    chmod +x .claude/hooks/*.sh .claude/hooks/lib/*.sh
    ```
    Drop the read-guard pair (`track-reads.sh`, `require-read-before-edit.sh`)
-   unless you want it — recent Claude Code enforces read-before-edit natively,
+   unless you want it - recent Claude Code enforces read-before-edit natively,
    and those two carry a `$HOME/.claude/session` dependency you don't want in a
    shared repo.
 2. Wire `.claude/settings.json` with **`$CLAUDE_PROJECT_DIR`-relative** paths so
@@ -65,7 +65,7 @@ Instead:
      }
    }
    ```
-3. The wired hooks are portable as-is — they read tool input from `$ARGUMENTS`
+3. The wired hooks are portable as-is - they read tool input from `$ARGUMENTS`
    and `lib/log-event.sh` finds the project root by walking up. (The `$HOME`
    references in `block-dangerous-commands.sh` are the intentional dangerous-`rm`
    detector, not a path dependency.) Smoke-test one before committing:
@@ -103,7 +103,7 @@ Use a pattern that matches every tree:
 **/.harness/ledger.jsonl
 ```
 
-Reflections (`**/.harness/reflections/`) stay committed — signal is private,
+Reflections (`**/.harness/reflections/`) stay committed - signal is private,
 wisdom is shared.
 
 ## CLAUDE.md for a team
@@ -118,7 +118,7 @@ Safety**, **Implementation Notes**, and **Self-improvement loop**. Add a short
 ## Lint when you can't run it
 
 ADOPT.md says run the linter and downgrade en-masse failures to `warn`. On a
-team rollout you often **can't** run it — deps aren't installed in the adoption
+team rollout you often **can't** run it - deps aren't installed in the adoption
 environment, or there's no test suite to catch regressions. In that case add the
 new rules as **`warn`, never `error`**, so they can't break the team's
 `lint`/CI, and leave an explicit RATCHET note in the config: promote to `error`
@@ -130,7 +130,7 @@ rules (which need project-service setup and a separate noise pass) entirely.
 A plugin **cannot be hard-required from a repo.** It installs into each dev's
 `~/.claude`, gated by Claude Code's folder-trust prompt, and a committed
 `enabledPlugins` entry for a plugin the dev hasn't installed is a **silent
-no-op** — no warning, no auto-install. There's also no reliable signal a hook
+no-op** - no warning, no auto-install. There's also no reliable signal a hook
 could check to detect whether a plugin is active, and no commit-time trace, so
 neither hooks nor CI can enforce it.
 
@@ -151,7 +151,7 @@ to `.claude/settings.json`:
 `extraKnownMarketplaces` makes Claude Code **prompt teammates to install** the
 marketplace+plugin when they trust the repo folder; `enabledPlugins` turns it on
 once installed. True enforcement only exists via org-admin **managed settings**,
-which is not a repo-level mechanism — so the actual "requirement" lives in your
+which is not a repo-level mechanism - so the actual "requirement" lives in your
 onboarding doc.
 
 ## Write an onboarding doc
@@ -160,17 +160,17 @@ Vendoring means near-zero setup, but document the rest so a new teammate knows
 what to expect. A `docs/agent-tooling-onboarding.md` (linked from `CLAUDE.md`)
 should cover:
 
-- **Prerequisites:** Claude Code; `jq` (the hooks shell out to it — without it
+- **Prerequisites:** Claude Code; `jq` (the hooks shell out to it - without it
   they silently no-op); the plugin(s) you default on.
 - **What runs automatically:** the hooks (and what each blocks/warns on), the
-  apply-on-touch rules, the lint configs — all from `git pull`, no install.
+  apply-on-touch rules, the lint configs - all from `git pull`, no install.
 - **The one manual step:** install the plugin (accept the marketplace prompt on
   folder-trust, or `claude plugin install <id>`), and how to verify it loaded.
 - **The `/reflect` loop:** the ledger is gitignored; reflections are committed.
 
 ## Roll it out as a reviewed PR/MR
 
-Vendored config changes how every teammate's agent behaves — that's a convention
+Vendored config changes how every teammate's agent behaves - that's a convention
 change, so it should be **reviewed, not pushed to the default branch.** Put the
 whole adoption on a branch (one commit per component, per ADOPT.md), open a
 PR/MR, and let the team approve the conventions before they land.
