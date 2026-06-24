@@ -6,12 +6,18 @@
 # Install: copy to ~/.claude/hooks/ and add to settings.json
 # The hook receives tool arguments via $ARGUMENTS
 
-# Extract file path from hook input
-FILE_PATH=$(echo "$ARGUMENTS" | jq -r '.file_path // .path // empty' 2>/dev/null)
-
-# Fallback: try to get it from positional args
+# Resolve the edited file path across the three invocation styles. CI passes it
+# as a positional arg; Claude Code pipes the tool payload as JSON on stdin (path
+# under .tool_input.file_path); legacy callers set $ARGUMENTS. Check $1 FIRST so
+# the CI path never reads stdin (a blocking `cat` would hang there). Reading only
+# $ARGUMENTS made this a silent no-op under Claude Code, which uses stdin.
+FILE_PATH="${1:-}"
 if [ -z "$FILE_PATH" ]; then
-  FILE_PATH="$1"
+  HOOK_INPUT="${ARGUMENTS:-}"
+  if [ -z "$HOOK_INPUT" ] && [ ! -t 0 ]; then
+    HOOK_INPUT=$(cat 2>/dev/null)
+  fi
+  FILE_PATH=$(printf '%s' "$HOOK_INPUT" | jq -r '.tool_input.file_path // .tool_input.path // .file_path // .path // empty' 2>/dev/null)
 fi
 
 # Skip if we can't determine the file

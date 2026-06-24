@@ -13,14 +13,29 @@
 
 set -u
 
-FILE_PATH=$(echo "${ARGUMENTS:-}" | jq -r '.file_path // .path // empty' 2>/dev/null)
+# Resolve the edited file path across the three invocation styles. CI passes it
+# as a positional arg; Claude Code pipes the tool payload as JSON on stdin (path
+# under .tool_input.file_path); legacy callers set $ARGUMENTS. Check $1 FIRST so
+# the CI path never reads stdin (a blocking `cat` would hang there). Reading only
+# $ARGUMENTS made this a silent no-op under Claude Code, which uses stdin.
+FILE_PATH="${1:-}"
 if [ -z "$FILE_PATH" ]; then
-  FILE_PATH="${1:-}"
+  HOOK_INPUT="${ARGUMENTS:-}"
+  if [ -z "$HOOK_INPUT" ] && [ ! -t 0 ]; then
+    HOOK_INPUT=$(cat 2>/dev/null)
+  fi
+  FILE_PATH=$(printf '%s' "$HOOK_INPUT" | jq -r '.tool_input.file_path // .tool_input.path // .file_path // .path // empty' 2>/dev/null)
 fi
 
 if [ -z "$FILE_PATH" ] || [ ! -f "$FILE_PATH" ]; then
   exit 0
 fi
+
+# Resolve to an absolute path. The branches below `cd` into the project root,
+# after which a repo-relative path (how CI invokes this hook, e.g.
+# "app/src/foo.ts") would no longer resolve and the linters would report
+# "no files matching". An absolute path resolves regardless of cwd.
+FILE_PATH="$(cd "$(dirname "$FILE_PATH")" && pwd)/$(basename "$FILE_PATH")"
 
 case "$FILE_PATH" in
   *.py)
