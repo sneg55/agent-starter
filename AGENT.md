@@ -16,7 +16,7 @@ Ask these questions **one at a time** before taking any action:
    - Skills (commit, commit-push-pr, simplify, remember, dream, new-project, adopt-project, reflect at `~/.claude/skills/`)
    - Both
    - Neither
-5. **Repo path** (only if hooks or skills selected) - what is the local path to the agent-starter repo? (e.g. `~/code/agent-starter`). If the answer to question 4 was "Neither", skip this question.
+5. **Repo path** - what is the local path to the agent-starter repo? (e.g. `~/code/agent-starter`). Always required: the CLAUDE.md template, foundation templates, and lint configs are all copied from the repo. (Hooks and skills also install from here when selected.)
 
 Do not proceed past this step until you have all answers.
 
@@ -69,6 +69,7 @@ dist/
 .DS_Store
 .cache/
 coverage/
+CLAUDE.local.md
 ```
 
 **`.env.example`:**
@@ -86,6 +87,10 @@ coverage/
 
 <!-- Add setup instructions here -->
 ```
+
+**`CLAUDE.local.md`** (gitignored - personal, machine-local instructions that are never committed): create it with just a comment header.
+
+**`.claude/rules/`** - modular instruction files loaded alongside CLAUDE.md. Create `.claude/rules/starter-patterns.md`, the apply-on-touch pattern index (the same file `ADOPT.md` Tier 4 writes), so new code has a pointer to each foundation guide. Optionally add topic stubs (`testing.md`, `git-workflow.md`, `code-style.md`, `security.md`) per `templates/NEW_PROJECT_PROMPT.md`.
 
 ### 4. Install lint configs (TypeScript/JavaScript or Python projects)
 
@@ -110,11 +115,33 @@ cd <project-name>
 uv add --dev ruff pyright   # or: python -m pip install ruff pyright
 ```
 
-For Python projects, also offer the Python foundation templates: `templates/env.py` (env boundary), `templates/error_ids.py` (error registry), `templates/truncate_for_context.py` (output truncation) - copy into `src/utils/` / `src/constants/` per the directory layout.
-
 Skip this step for other stacks (Rust, Go, etc.).
 
-### 5. Install hooks (if selected)
+### 5. Copy foundation templates (TypeScript/JavaScript or Python)
+
+Reference: `guides/error-id-registry.md`, `guides/zod-at-the-boundary.md`
+
+These are the "create from day one" foundation files (see `templates/NEW_PROJECT_PROMPT.md` -> Foundation Files): a centralized env boundary, a numbered error registry, and an output truncator. Copy them for the matching stack into `src/utils/` / `src/constants/` per the directory layout, then adapt import paths.
+
+TypeScript/JavaScript:
+
+```bash
+cp <repo-path>/templates/env.ts <project-name>/src/utils/env.ts
+cp <repo-path>/templates/errorIds.ts <project-name>/src/constants/errorIds.ts
+cp <repo-path>/templates/truncate-for-context.ts <project-name>/src/utils/truncate-for-context.ts
+```
+
+Python:
+
+```bash
+cp <repo-path>/templates/env.py <project-name>/src/utils/env.py
+cp <repo-path>/templates/error_ids.py <project-name>/src/constants/error_ids.py
+cp <repo-path>/templates/truncate_for_context.py <project-name>/src/utils/truncate_for_context.py
+```
+
+Skip for other stacks - point the developer at the guides above to build equivalents.
+
+### 6. Install hooks (if selected)
 
 Run the idempotent installer - it copies the hooks (and `lib/`) to
 `~/.claude/hooks/`, stamps the installed version, and merges the hook wiring
@@ -139,7 +166,7 @@ versions.
 
 Reference: `hooks/README.md` for full hook documentation and manual-install snippets.
 
-### 6. Install skills (if selected)
+### 7. Install skills (if selected)
 
 ```bash
 mkdir -p ~/.claude/skills
@@ -154,7 +181,7 @@ cp -r <repo-path>/skills/adopt-project ~/.claude/skills/
 cp -r <repo-path>/skills/reflect ~/.claude/skills/
 ```
 
-### 7. Initialize the self-improvement ledger
+### 8. Initialize the self-improvement ledger
 
 Create the project-local ledger directory and ignore the raw signal (keep the
 distilled reflections tracked):
@@ -171,7 +198,7 @@ the ledger via `harness-ledger-stats.sh`, clusters recurring mistakes, and propo
 rule / threshold / ADR changes for your approval. See `templates/CLAUDE.md` →
 "Self-improvement loop".
 
-### 8. Initialize git and first commit
+### 9. Initialize git and first commit
 
 ```bash
 cd <project-name>
@@ -190,9 +217,11 @@ EOF
 Confirm each item before reporting done:
 
 - [ ] Project directory with feature-based structure (`src/features`, `src/services`, `src/utils`, `src/types`, `src/constants`, `src/schemas`, `src/entrypoints`, `src/migrations`, `tests/`, `docs/`, `scripts/`)
-- [ ] `CLAUDE.md` present with project name and description filled in
-- [ ] `.gitignore`, `.env.example`, and `README.md` present
+- [ ] `CLAUDE.md` copied from `templates/CLAUDE.md` with project name and description filled in
+- [ ] `.gitignore`, `.env.example`, `README.md`, and `CLAUDE.local.md` present (`CLAUDE.local.md` gitignored)
+- [ ] `.claude/rules/starter-patterns.md` written
 - [ ] Lint configs copied + deps installed - `biome.json` + `eslint.config.mjs` (TS/JS) or `ruff.toml` + `pyrightconfig.json` (Python); skipped for other stacks
+- [ ] Foundation templates copied - env boundary + error registry + truncator for the stack (TS or Python); skipped for other stacks
 - [ ] Hooks installed to `~/.claude/hooks/` and configured in `settings.json` (if selected)
 - [ ] Skills installed to `~/.claude/skills/` (if selected)
 - [ ] `.harness/reflections/` created and `.harness/ledger.jsonl` added to `.gitignore`
