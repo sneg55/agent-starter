@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "Toolkit of skills, hooks, templates, and guides for bootstrapping AI-agent-friendly projects.",
-    "version": "0.4.2"
+    "version": "0.4.3"
   },
   "plugins": [
     {
       "name": "agent-starter",
       "source": "./",
       "description": "Skills, hooks, templates, and engineering guides for bootstrapping AI-agent-friendly projects, with a per-project self-improvement loop. Bundles the /new-project and /adopt-project scaffolding skills plus commit, simplify, reflect, remember, and dream.",
-      "version": "0.4.2",
+      "version": "0.4.3",
       "author": {
         "name": "Nick Sawinyh"
       },
