@@ -26,21 +26,23 @@ For an **existing** project, say **"read this repo and apply it to my project"**
 
 For a **whole team** - making everyone get the same setup from a `git pull` (vendored hooks, shared config, plugin defaults) - see [`TEAM.md`](TEAM.md). It's the companion to `ADOPT.md`: where ADOPT.md installs into one developer's `~/.claude`, TEAM.md ships the setup with the repo.
 
-To install just the hooks (with their `settings.json` wiring merged idempotently via jq):
-
-```bash
-git clone https://github.com/sneg55/agent-starter && cd agent-starter
-./install.sh   # add --with-read-guard for the read-before-edit pair
-```
-
-Or install every skill at once as a **Claude Code plugin** - this repo doubles as a plugin marketplace:
+Install everything at once as a **Claude Code plugin** - this repo doubles as a plugin marketplace:
 
 ```
 /plugin marketplace add sneg55/agent-starter
 /plugin install agent-starter@agent-starter
 ```
 
-That loads all the skills (`/new-project`, `/adopt-project`, `/commit`, `/simplify`, `/reflect`, `/remember`, `/dream`). Hooks are still wired via `install.sh` above.
+That loads all the skills (`/new-project`, `/adopt-project`, `/commit`, `/commit-push-pr`, `/simplify`, `/reflect`, `/remember`, `/dream`) **and** wires the enforcement hooks (file-size, lint-on-edit, silent-error, dangerous-command, codebase-health) from `hooks/hooks.json`. This is the simplest path and the one to recommend.
+
+The read-before-edit guard pair is left out of the plugin on purpose (recent Claude Code enforces read-before-edit natively); opt into it via `install.sh --with-read-guard` below.
+
+To install **just the hooks** into your per-user `~/.claude` instead (with their `settings.json` wiring merged idempotently via jq) - useful when you want the hooks globally without the plugin:
+
+```bash
+git clone https://github.com/sneg55/agent-starter && cd agent-starter
+./install.sh   # add --with-read-guard for the read-before-edit pair
+```
 
 ## Guides
 
