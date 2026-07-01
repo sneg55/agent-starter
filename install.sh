@@ -72,7 +72,7 @@ jq --arg h "$H" --argjson guard "$READ_GUARD" '
   | add("PostToolUse"; entry("Write|Edit"; $h + "/check-silent-errors.sh"; 5; "Checking error handling..."))
   | add("PreToolUse";  entry("Bash"; $h + "/block-dangerous-commands.sh"; 3; "Checking command safety..."))
   | add("SessionStart"; {hooks: [{type: "command", command: ($h + "/check-codebase-health.sh ."), timeout: 15, statusMessage: "Checking codebase health..."}]})
-  | add("UserPromptSubmit"; {hooks: [{type: "command", command: ($h + "/suggest-loop-improvements.sh"), timeout: 10, statusMessage: "Reviewing loop/goal instructions..."}]})
+  | add("UserPromptSubmit"; {hooks: [{type: "command", command: ($h + "/suggest-loop-improvements.sh"), timeout: 10, statusMessage: "Reviewing loop instructions..."}]})
   | (if $guard == 1 then
        add("PostToolUse"; entry("Read"; $h + "/track-reads.sh"; 3; "Tracking reads..."))
      | add("PreToolUse";  entry("Edit|Write"; $h + "/require-read-before-edit.sh"; 3; "Checking read log..."))

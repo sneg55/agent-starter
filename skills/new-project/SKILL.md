@@ -204,7 +204,7 @@ Hook behavior (wired by default):
 - `check-silent-errors.sh` - blocks writes that introduce swallowed exceptions.
 - `block-dangerous-commands.sh` - blocks force-push, `git reset --hard`, recursive rm on `/`/`~`, before they run.
 - `check-codebase-health.sh` - runs at session start. Reports files over 500 lines that need splitting. Silent when healthy.
-- `suggest-loop-improvements.sh` - when you run `/loop`, proposes 2-3 tighter drop-in rewrites (explicit success criteria, stop condition, scope, verification) and lets you pick one via an interactive menu. Advisory only for client-side commands like `/goal`.
+- `suggest-loop-improvements.sh` - when you run `/loop`, proposes 2-3 tighter drop-in rewrites (explicit success criteria, stop condition, scope, verification) and lets you pick one via an interactive menu. Scoped to `/loop` only (client-side commands like `/goal` run before Claude's turn, so they can't be gated).
 
 Optional: `--with-read-guard` also wires `track-reads.sh` + `require-read-before-edit.sh`. Recent Claude Code versions enforce read-before-edit natively, so only add it for older versions.
 
