@@ -60,6 +60,18 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/suggest-loop-improvements.sh",
+            "timeout": 10,
+            "statusMessage": "Reviewing loop/goal instructions..."
+          }
+        ]
+      }
     ]
   }
 }

@@ -158,6 +158,29 @@ Add to `settings.json`:
 }
 ```
 
+### suggest-loop-improvements.sh
+**Event:** UserPromptSubmit
+**What it does:** When you run `/loop` or `/goal`, injects an instruction that has Claude propose 2-3 improved, drop-in replacements for the command before it runs, then present them with the `AskUserQuestion` tool so you pick one interactively (A / B / C, plus "Run original unchanged") - no copy-paste. Claude runs only the option you select.
+
+- The hook does **no LLM work and spawns no nested session** - it only injects context, so the already-running model generates the variants. Fast (<50ms), needs no API key.
+- Filters by prompt text (`UserPromptSubmit` has no matcher), so it is a silent no-op for every other prompt.
+- Each replacement adds only the missing precision - explicit success criteria, a stop condition, bounded scope, a verification step - while preserving your interval and args.
+- Non-blocking (exit 0): if the command is already solid, or the session is headless (no interactive prompt), the original runs unchanged.
+
+Add to `settings.json`:
+
+```json
+{
+  "UserPromptSubmit": [
+    {
+      "hooks": [
+        { "type": "command", "command": "~/.claude/hooks/suggest-loop-improvements.sh", "timeout": 10, "statusMessage": "Reviewing loop/goal instructions..." }
+      ]
+    }
+  ]
+}
+```
+
 ## Exit Code Behavior
 - **Exit 0** - success, proceed normally
 - **Exit 2** - BLOCK the action, stderr shown to Claude as error
