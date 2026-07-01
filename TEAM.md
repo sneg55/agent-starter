@@ -61,7 +61,8 @@ Instead:
          { "matcher": "Write|Edit", "hooks": [{ "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/check-silent-errors.sh", "timeout": 5,  "statusMessage": "Checking error handling..." }] }
        ],
        "PreToolUse":  [{ "matcher": "Bash", "hooks": [{ "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-dangerous-commands.sh", "timeout": 3, "statusMessage": "Checking command safety..." }] }],
-       "SessionStart":[{ "hooks": [{ "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/check-codebase-health.sh .", "timeout": 15, "statusMessage": "Checking codebase health..." }] }]
+       "SessionStart":[{ "hooks": [{ "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/check-codebase-health.sh .", "timeout": 15, "statusMessage": "Checking codebase health..." }] }],
+       "UserPromptSubmit":[{ "hooks": [{ "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/suggest-loop-improvements.sh", "timeout": 10, "statusMessage": "Reviewing loop instructions..." }] }]
      }
    }
    ```

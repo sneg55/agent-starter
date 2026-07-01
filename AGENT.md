@@ -158,6 +158,7 @@ Hooks wired by default:
 - `lint-on-edit.sh` - Biome + ESLint on save; ruff check + format for Python (PostToolUse:Write|Edit)
 - `check-silent-errors.sh` - block swallowed exceptions (PostToolUse:Write|Edit)
 - `block-dangerous-commands.sh` - block force-push, `reset --hard`, recursive rm on `/`/`~` (PreToolUse:Bash)
+- `suggest-loop-improvements.sh` - on `/loop`, offer tighter drop-in rewrites via an interactive picker before it runs (UserPromptSubmit)
 
 Optional: add `--with-read-guard` to also wire `track-reads.sh` +
 `require-read-before-edit.sh` (force Read before Edit). Recent Claude Code

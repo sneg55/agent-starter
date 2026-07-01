@@ -33,7 +33,7 @@ Install everything at once as a **Claude Code plugin** - this repo doubles as a 
 /plugin install agent-starter@agent-starter
 ```
 
-That loads all the skills (`/new-project`, `/adopt-project`, `/commit`, `/commit-push-pr`, `/simplify`, `/reflect`, `/remember`, `/dream`) **and** wires the enforcement hooks (file-size, lint-on-edit, silent-error, dangerous-command, codebase-health) from `hooks/hooks.json`. This is the simplest path and the one to recommend.
+That loads all the skills (`/new-project`, `/adopt-project`, `/commit`, `/commit-push-pr`, `/simplify`, `/reflect`, `/remember`, `/dream`) **and** wires the enforcement hooks (file-size, lint-on-edit, silent-error, dangerous-command, codebase-health) plus a `/loop` instruction-review hook from `hooks/hooks.json`. This is the simplest path and the one to recommend.
 
 The read-before-edit guard pair is left out of the plugin on purpose (recent Claude Code enforces read-before-edit natively); opt into it via `install.sh --with-read-guard` below.
 

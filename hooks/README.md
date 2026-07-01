@@ -158,6 +158,31 @@ Add to `settings.json`:
 }
 ```
 
+### suggest-loop-improvements.sh
+**Event:** UserPromptSubmit
+**What it does:** When you run `/loop`, injects an instruction that has Claude propose 2-3 improved, drop-in replacements for the command before it runs, then present them with the `AskUserQuestion` tool so you pick one interactively (A / B / C, plus "Run original unchanged") - no copy-paste. Claude runs only the option you select.
+
+- The hook does **no LLM work and spawns no nested session** - it only injects context, so the already-running model generates the variants. Fast (<50ms), needs no API key.
+- Filters by prompt text (`UserPromptSubmit` has no matcher), so it is a silent no-op for every other prompt.
+- Each replacement adds only the missing precision - explicit success criteria, a stop condition, bounded scope, a verification step - while preserving your interval and args.
+- Non-blocking (exit 0): if the command is already solid, or the session is headless (no interactive prompt), the original runs unchanged.
+
+**Scoped to `/loop` only, on purpose.** `/loop` hands control to Claude to interpret and act, so the injected "ask first" instruction lands *before* any action and the picker can render. Client-side local commands like `/goal` execute their effect at submit time (the CLI sets the goal and arms its Stop hook before Claude's turn even starts), so an advisory (exit 0) injection cannot intercept them, and `/goal` also explicitly tells Claude not to pause and ask. The hook therefore matches only `/loop*` and ignores `/goal`. Interactive gating like this works only for commands whose effect Claude performs on its turn, not for client-side commands.
+
+Add to `settings.json`:
+
+```json
+{
+  "UserPromptSubmit": [
+    {
+      "hooks": [
+        { "type": "command", "command": "~/.claude/hooks/suggest-loop-improvements.sh", "timeout": 10, "statusMessage": "Reviewing loop instructions..." }
+      ]
+    }
+  ]
+}
+```
+
 ## Exit Code Behavior
 - **Exit 0** - success, proceed normally
 - **Exit 2** - BLOCK the action, stderr shown to Claude as error
