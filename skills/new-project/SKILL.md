@@ -18,6 +18,34 @@ Use when starting a new project from scratch. Scaffolds a complete AI-friendly p
 
 For existing projects, use `/adopt-project` instead.
 
+## Phase 0: Detect what's already installed
+
+Hooks and skills install **system-wide** under `~/.claude/`, so they're shared
+across every project. Detect them first and never ask about components that are
+already present. Run:
+
+```bash
+# Hooks: install.sh stamps this file with the installed version
+HOOKS_VER=$( [ -f ~/.claude/hooks/.agent-starter-version ] && cat ~/.claude/hooks/.agent-starter-version || echo "" )
+HOOKS_N=$( ls ~/.claude/hooks/*.sh 2>/dev/null | wc -l | tr -d ' ' )
+
+# Skills: the starter skills this bootstrap installs
+for s in commit commit-push-pr simplify remember dream new-project adopt-project reflect; do
+  [ -d ~/.claude/skills/$s ] && echo "skill:$s present" || echo "skill:$s missing"
+done
+echo "hooks: version ${HOOKS_VER:-none}, $HOOKS_N scripts"
+```
+
+Interpret the output:
+- **Hooks installed** if `.agent-starter-version` exists (or hook scripts are
+  found). Record the stamped version.
+- **Skills installed** per directory listed as `present`.
+
+Carry this into the interview and scaffold: only ask about, and only install,
+what's **missing**. If a stamped hooks version is present but older than the
+repo `VERSION` (checked in Phase 1 once you have the repo path), note that an
+update is available and offer to re-run `install.sh` (idempotent) - don't force it.
+
 ## Phase 1: Interview
 
 Ask these questions **one at a time** before taking any action:
@@ -25,12 +53,15 @@ Ask these questions **one at a time** before taking any action:
 1. **Project name** - what is the name of the project?
 2. **Description** - one sentence describing what it does.
 3. **Tech stack** - language, framework, package manager (e.g. "TypeScript, Next.js, pnpm").
-4. **Optional components** - which would you like installed?
+4. **Optional components** - ask **only about what Phase 0 reported as missing**.
+   If hooks and all skills are already installed, skip this question entirely -
+   state what was detected ("Hooks v0.4.4 and all 8 skills already installed
+   system-wide, skipping") and move on. Otherwise offer the missing set:
    - Hooks (auto-enforce file size limits, lint-on-save, silent-error and dangerous-command blocking, codebase health checks at `~/.claude/hooks/`)
    - Skills (commit, commit-push-pr, simplify, remember, dream, new-project, adopt-project, reflect at `~/.claude/skills/`)
    - Both
    - Neither
-5. **Repo path** - what is the local path to the agent-starter repo? (e.g. `~/code/agent-starter`). Always required: the CLAUDE.md template, foundation templates, and lint configs are all copied from the repo. (Hooks and skills also install from here when selected.)
+5. **Repo path** - what is the local path to the agent-starter repo? (e.g. `~/code/agent-starter`). Always required: the CLAUDE.md template, foundation templates, and lint configs are all copied from the repo. (Hooks and skills also install from here when selected and not already present.)
 
 Do not proceed past this step until you have all answers.
 
@@ -187,12 +218,17 @@ cp <repo-path>/templates/truncate_for_context.py <project-name>/src/utils/trunca
 Skip for other stacks (Rust, Go, etc.) - point the developer at the guides above
 to build equivalents.
 
-### 5. Install hooks (if selected)
+### 5. Install hooks (if selected and not already installed)
 
-Run the idempotent installer - it copies the hooks (and `lib/`) to
-`~/.claude/hooks/`, stamps the installed version, and merges the hook wiring
-into `~/.claude/settings.json` with jq. Existing entries are preserved and
-re-running never duplicates anything - do not hand-edit the JSON:
+Skip if Phase 0 detected hooks already installed **and** the stamped version
+matches the repo `VERSION` - they're system-wide, so they already cover this
+project. If installed but stale, offer to update by re-running the installer
+(it's idempotent). Otherwise run it now.
+
+The installer copies the hooks (and `lib/`) to `~/.claude/hooks/`, stamps the
+installed version, and merges the hook wiring into `~/.claude/settings.json`
+with jq. Existing entries are preserved and re-running never duplicates
+anything - do not hand-edit the JSON:
 
 ```bash
 bash <repo-path>/install.sh
@@ -208,20 +244,22 @@ Hook behavior (wired by default):
 
 Optional: `--with-read-guard` also wires `track-reads.sh` + `require-read-before-edit.sh`. Recent Claude Code versions enforce read-before-edit natively, so only add it for older versions.
 
-### 6. Install skills (if selected)
+### 6. Install skills (if selected and not already installed)
+
+Copy **only the skills Phase 0 reported as `missing`**. Skills are system-wide,
+so any already present already cover this project - leave them as-is rather than
+overwriting (a blind `cp -r` would clobber local edits). The guard below copies
+each skill only when its directory is absent:
 
 ```bash
 mkdir -p ~/.claude/skills
-cp -r <repo-path>/skills/commit ~/.claude/skills/
-cp -r <repo-path>/skills/commit-push-pr ~/.claude/skills/
-cp -r <repo-path>/skills/simplify ~/.claude/skills/
-cp -r <repo-path>/skills/remember ~/.claude/skills/
-cp -r <repo-path>/skills/dream ~/.claude/skills/
-# new-project skill is included in this repo at skills/new-project/
-cp -r <repo-path>/skills/new-project ~/.claude/skills/
-cp -r <repo-path>/skills/adopt-project ~/.claude/skills/
-cp -r <repo-path>/skills/reflect ~/.claude/skills/
+for s in commit commit-push-pr simplify remember dream new-project adopt-project reflect; do
+  [ -d ~/.claude/skills/$s ] || cp -r <repo-path>/skills/$s ~/.claude/skills/
+done
 ```
+
+To deliberately refresh an already-installed skill (e.g. after pulling a newer
+repo), copy that one explicitly: `cp -r <repo-path>/skills/<name> ~/.claude/skills/`.
 
 Installed skills:
 - `/commit` - single well-crafted git commit with "why not what" message
@@ -271,10 +309,10 @@ Confirm each item before reporting done:
 - [ ] `.claude/rules/starter-patterns.md` written
 - [ ] Lint configs copied + deps installed - `biome.json` + `eslint.config.mjs` (TS/JS) or `ruff.toml` + `pyrightconfig.json` (Python); skipped for other stacks
 - [ ] Foundation templates copied - env boundary + error registry + truncator for the stack (TS or Python); skipped for other stacks
-- [ ] Hooks installed to `~/.claude/hooks/` and configured in `settings.json` (if selected)
-- [ ] Skills installed to `~/.claude/skills/` (if selected)
+- [ ] Hooks present in `~/.claude/hooks/` and configured in `settings.json` (installed now if selected, or already detected in Phase 0)
+- [ ] Skills present in `~/.claude/skills/` (missing ones installed if selected; already-present ones left as-is)
 - [ ] `.harness/reflections/` created and `.harness/ledger.jsonl` added to `.gitignore`
-- [ ] `reflect` skill installed to `~/.claude/skills/reflect`
+- [ ] `reflect` skill present at `~/.claude/skills/reflect`
 - [ ] Initial git commit created
 
 ## Allowed Tools

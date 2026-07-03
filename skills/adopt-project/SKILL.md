@@ -60,7 +60,12 @@ Build a gap report before proposing anything.
   ruff (`ruff.toml` or `[tool.ruff]` in pyproject), mypy/pyright configs
 - **Instructions:** `CLAUDE.md`, `CLAUDE.local.md`, `.claude/rules/`, `AGENTS.md`
 - **Hooks:** `.claude/settings.json` hook entries; agent-starter hooks already
-  installed (`~/.claude/hooks/.agent-starter-version`)
+  installed system-wide (`~/.claude/hooks/.agent-starter-version` - record the
+  stamped version to compare against the repo `VERSION`)
+- **Skills:** which starter skills are already present system-wide - check
+  `~/.claude/skills/{commit,commit-push-pr,simplify,remember,dream,new-project,adopt-project,reflect}`.
+  Hooks and skills are **user-global**, so anything already installed already
+  covers this project - don't re-propose it.
 - **Tests:** `package.json` `scripts.test`, pytest/tox config, Makefile targets
 - **File-size health:** run `bash <repo-path>/hooks/check-codebase-health.sh`
   from the project root, or
@@ -77,11 +82,15 @@ is applied unapproved.
 
 ### Tier 1 - Non-invasive (no project-file conflicts possible)
 
-- **Hooks:** `bash <repo-path>/install.sh` - idempotent; installs to
-  `~/.claude/hooks/` and merges the settings.json wiring with jq. Note for the
-  developer: hooks are **user-global** - they will also fire in their other
-  projects.
-- **Skills:** copy from `<repo-path>/skills/` to `~/.claude/skills/`.
+- **Hooks:** skip if the audit found them already installed and current (stamped
+  version matches the repo `VERSION`) - they're user-global and already cover
+  this project. If stale, offer to update by re-running `bash <repo-path>/install.sh`
+  (idempotent). Otherwise run it now: it installs to `~/.claude/hooks/` and
+  merges the settings.json wiring with jq. Note for the developer: hooks are
+  **user-global** - they will also fire in their other projects.
+- **Skills:** copy only the ones the audit found **missing** from
+  `<repo-path>/skills/` to `~/.claude/skills/`; leave already-present skills
+  as-is (`for s in ...; do [ -d ~/.claude/skills/$s ] || cp -r <repo-path>/skills/$s ~/.claude/skills/; done`).
 - **Self-improvement ledger:**
   `mkdir -p .harness/reflections && echo '.harness/ledger.jsonl' >> .gitignore`
   - the hooks log to it automatically; `/reflect` reads it.

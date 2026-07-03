@@ -4,6 +4,30 @@ This repo contains patterns for bootstrapping AI-friendly projects. Follow these
 
 > Scaffolding a **new** project. For applying these patterns to an **existing** codebase, see `ADOPT.md`.
 
+## Step 0: Detect what's already installed
+
+Hooks and skills install **system-wide** under `~/.claude/`, so they're shared
+across every project. Detect them first and never ask about components that are
+already present. Run:
+
+```bash
+# Hooks: install.sh stamps this file with the installed version
+HOOKS_VER=$( [ -f ~/.claude/hooks/.agent-starter-version ] && cat ~/.claude/hooks/.agent-starter-version || echo "" )
+HOOKS_N=$( ls ~/.claude/hooks/*.sh 2>/dev/null | wc -l | tr -d ' ' )
+
+# Skills: the starter skills this bootstrap installs
+for s in commit commit-push-pr simplify remember dream new-project adopt-project reflect; do
+  [ -d ~/.claude/skills/$s ] && echo "skill:$s present" || echo "skill:$s missing"
+done
+echo "hooks: version ${HOOKS_VER:-none}, $HOOKS_N scripts"
+```
+
+Hooks are installed if `.agent-starter-version` exists (record the version);
+skills are installed per directory listed as `present`. Carry this into the
+interview and scaffold: only ask about, and only install, what's **missing**. If
+a stamped hooks version is present but older than the repo `VERSION`, note an
+update is available and offer to re-run `install.sh` (idempotent) - don't force it.
+
 ## Step 1: Interview the Developer
 
 Ask these questions **one at a time** before taking any action:
@@ -11,12 +35,14 @@ Ask these questions **one at a time** before taking any action:
 1. **Project name** - what is the name of the project?
 2. **Description** - one sentence describing what it does.
 3. **Tech stack** - language, framework, package manager (e.g. "TypeScript, Next.js, pnpm").
-4. **Optional components** - which would you like installed?
+4. **Optional components** - ask **only about what Step 0 reported as missing**.
+   If hooks and all skills are already installed, skip this question entirely -
+   state what was detected and move on. Otherwise offer the missing set:
    - Hooks (auto-enforce file size limits, lint-on-save, silent-error and dangerous-command blocking, codebase health checks at `~/.claude/hooks/`)
    - Skills (commit, commit-push-pr, simplify, remember, dream, new-project, adopt-project, reflect at `~/.claude/skills/`)
    - Both
    - Neither
-5. **Repo path** - what is the local path to the agent-starter repo? (e.g. `~/code/agent-starter`). Always required: the CLAUDE.md template, foundation templates, and lint configs are all copied from the repo. (Hooks and skills also install from here when selected.)
+5. **Repo path** - what is the local path to the agent-starter repo? (e.g. `~/code/agent-starter`). Always required: the CLAUDE.md template, foundation templates, and lint configs are all copied from the repo. (Hooks and skills also install from here when selected and not already present.)
 
 Do not proceed past this step until you have all answers.
 
@@ -141,12 +167,17 @@ cp <repo-path>/templates/truncate_for_context.py <project-name>/src/utils/trunca
 
 Skip for other stacks - point the developer at the guides above to build equivalents.
 
-### 6. Install hooks (if selected)
+### 6. Install hooks (if selected and not already installed)
 
-Run the idempotent installer - it copies the hooks (and `lib/`) to
-`~/.claude/hooks/`, stamps the installed version, and merges the hook wiring
-into `~/.claude/settings.json` with jq. Existing entries are preserved and
-re-running never duplicates anything, so there is no hand-editing of JSON:
+Skip if Step 0 detected hooks already installed **and** the stamped version
+matches the repo `VERSION` - they're system-wide, so they already cover this
+project. If installed but stale, offer to update by re-running the installer
+(idempotent). Otherwise run it now.
+
+The installer copies the hooks (and `lib/`) to `~/.claude/hooks/`, stamps the
+installed version, and merges the hook wiring into `~/.claude/settings.json`
+with jq. Existing entries are preserved and re-running never duplicates
+anything, so there is no hand-editing of JSON:
 
 ```bash
 bash <repo-path>/install.sh
@@ -167,20 +198,21 @@ versions.
 
 Reference: `hooks/README.md` for full hook documentation and manual-install snippets.
 
-### 7. Install skills (if selected)
+### 7. Install skills (if selected and not already installed)
+
+Copy **only the skills Step 0 reported as `missing`**. Skills are system-wide,
+so any already present already cover this project - leave them as-is rather than
+overwriting (a blind `cp -r` would clobber local edits):
 
 ```bash
 mkdir -p ~/.claude/skills
-cp -r <repo-path>/skills/commit ~/.claude/skills/
-cp -r <repo-path>/skills/commit-push-pr ~/.claude/skills/
-cp -r <repo-path>/skills/simplify ~/.claude/skills/
-cp -r <repo-path>/skills/remember ~/.claude/skills/
-cp -r <repo-path>/skills/dream ~/.claude/skills/
-# new-project skill is included in this repo at skills/new-project/
-cp -r <repo-path>/skills/new-project ~/.claude/skills/
-cp -r <repo-path>/skills/adopt-project ~/.claude/skills/
-cp -r <repo-path>/skills/reflect ~/.claude/skills/
+for s in commit commit-push-pr simplify remember dream new-project adopt-project reflect; do
+  [ -d ~/.claude/skills/$s ] || cp -r <repo-path>/skills/$s ~/.claude/skills/
+done
 ```
+
+To deliberately refresh an already-installed skill after pulling a newer repo,
+copy that one explicitly: `cp -r <repo-path>/skills/<name> ~/.claude/skills/`.
 
 ### 8. Initialize the self-improvement ledger
 
