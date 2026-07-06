@@ -1,5 +1,5 @@
-// ESLint flat config - trimmed companion to templates/biome.json.
-// Biome handles fast syntactic rules + formatting (see biome.json).
+// ESLint flat config - trimmed companion to templates/biome.jsonc.
+// Biome handles fast syntactic rules + formatting (see biome.jsonc).
 // ESLint keeps ONLY the rules Biome can't do: type-aware checks and
 // plugin-specific checks (import resolution, sonarjs complexity, security).
 //

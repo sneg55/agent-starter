@@ -47,7 +47,7 @@ For each cluster, draft exactly one proposed change, choosing the fitting type:
 |------|------|----------------|
 | **Project rule** | a convention would stop the repeat | append to `CLAUDE.md` project-specific section |
 | **Threshold change** | a guardrail is too strict/loose | a diff to `.claude/settings.json` or the hook - **shown, never auto-applied** |
-| **Lint rule** | the mistake is mechanically catchable | a diff to `eslint.config.mjs` / `biome.json` |
+| **Lint rule** | the mistake is mechanically catchable | a diff to `eslint.config.mjs` / `biome.jsonc` |
 | **ADR / knowledge** | durable "why" worth keeping | a new memory file or `docs/adr/` note |
 
 Present all proposals together as a numbered list with the concrete change for each.

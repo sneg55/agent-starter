@@ -98,7 +98,7 @@ is applied unapproved.
 
 **TypeScript:**
 
-- **No linter** → copy `templates/biome.json` + `templates/eslint.config.mjs`,
+- **No linter** → copy `templates/biome.jsonc` + `templates/eslint.config.mjs`,
   install deps (AGENT.md step 4), run on the codebase, and report the damage.
   Where existing code fails a rule en masse, downgrade that rule to `warn`
   with a ratchet note instead of fixing hundreds of violations in the

@@ -125,7 +125,7 @@ Reference: `guides/lint-rules-for-ai.md`
 If the project's tech stack is TypeScript or JavaScript, copy both configs and install their dependencies. Biome handles formatting + fast syntactic rules; ESLint handles type-aware + plugin rules.
 
 ```bash
-cp <repo-path>/templates/biome.json <project-name>/biome.json
+cp <repo-path>/templates/biome.jsonc <project-name>/biome.jsonc
 cp <repo-path>/templates/eslint.config.mjs <project-name>/eslint.config.mjs
 cd <project-name>
 npm i -D @biomejs/biome eslint typescript-eslint eslint-plugin-import \
@@ -253,7 +253,7 @@ Confirm each item before reporting done:
 - [ ] `CLAUDE.md` copied from `templates/CLAUDE.md` with project name and description filled in
 - [ ] `.gitignore`, `.env.example`, `README.md`, and `CLAUDE.local.md` present (`CLAUDE.local.md` gitignored)
 - [ ] `.claude/rules/starter-patterns.md` written
-- [ ] Lint configs copied + deps installed - `biome.json` + `eslint.config.mjs` (TS/JS) or `ruff.toml` + `pyrightconfig.json` (Python); skipped for other stacks
+- [ ] Lint configs copied + deps installed - `biome.jsonc` + `eslint.config.mjs` (TS/JS) or `ruff.toml` + `pyrightconfig.json` (Python); skipped for other stacks
 - [ ] Foundation templates copied - env boundary + error registry + truncator for the stack (TS or Python); skipped for other stacks
 - [ ] Hooks installed to `~/.claude/hooks/` and configured in `settings.json` (if selected)
 - [ ] Skills installed to `~/.claude/skills/` (if selected)

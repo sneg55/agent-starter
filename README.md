@@ -50,7 +50,7 @@ git clone https://github.com/sneg55/agent-starter && cd agent-starter
 Comprehensive best practices for setting up and scaling a large codebase with Claude Code - directory structure, file size targets, naming conventions, error handling, CLAUDE.md hierarchy, and more. All derived from analyzing Anthropic's own Claude Code CLI source.
 
 ### `guides/lint-rules-for-ai.md`
-Tiered Biome + ESLint ruleset tuned for AI-agent-driven TypeScript codebases. Blocks the specific mistakes LLMs make (dropped `await`s, `any` escape hatches, hallucinated imports, half-finished functions) rather than enforcing arbitrary line caps. Biome handles fast syntactic rules + formatting; ESLint keeps type-aware and plugin-specific rules. Pairs with `templates/biome.json`, `templates/eslint.config.mjs`, and `hooks/lint-on-edit.sh`. Includes the Python half: the same tiers via ruff + pyright, pairing with `templates/ruff.toml` + `templates/pyrightconfig.json`.
+Tiered Biome + ESLint ruleset tuned for AI-agent-driven TypeScript codebases. Blocks the specific mistakes LLMs make (dropped `await`s, `any` escape hatches, hallucinated imports, half-finished functions) rather than enforcing arbitrary line caps. Biome handles fast syntactic rules + formatting; ESLint keeps type-aware and plugin-specific rules. Pairs with `templates/biome.jsonc`, `templates/eslint.config.mjs`, and `hooks/lint-on-edit.sh`. Includes the Python half: the same tiers via ruff + pyright, pairing with `templates/ruff.toml` + `templates/pyrightconfig.json`.
 
 ### `guides/hooks-reference.md`
 Complete reference for Claude Code's hook system - all 4 hook types, all 27 events, exit code behavior, configuration format, and 10 practical examples (auto-lint, block dangerous commands, agent verification, security review, Slack notifications, and more).
@@ -78,7 +78,7 @@ Validate external data the moment it enters your program; never re-check inside.
 ### `templates/NEW_PROJECT_PROMPT.md`
 Copy-paste prompt for Claude Code to scaffold a new project from scratch. Covers directory structure, CLAUDE.md hierarchy, modular rules, error handling, constants, env validation, git setup, and coding standards. Just fill in the {{placeholders}} and go.
 
-### `templates/biome.json` + `templates/eslint.config.mjs`
+### `templates/biome.jsonc` + `templates/eslint.config.mjs`
 Drop-in Biome + ESLint configs tuned for AI-agent TypeScript projects. Biome owns formatting and fast syntactic rules; ESLint owns type-aware correctness (`no-floating-promises`, the `no-unsafe-*` family), import resolution (catches hallucinated modules), sonarjs cognitive complexity, and security rules. See `guides/lint-rules-for-ai.md` for the rationale and the full split.
 
 ### `templates/CLAUDE.md`
