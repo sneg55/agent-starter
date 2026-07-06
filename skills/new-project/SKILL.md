@@ -173,7 +173,7 @@ Optionally also create topic stubs (`testing.md`, `git-workflow.md`, `code-style
 **Lint configs** - if the stack is TypeScript/JavaScript:
 
 ```bash
-cp <repo-path>/templates/biome.json <project-name>/biome.json
+cp <repo-path>/templates/biome.jsonc <project-name>/biome.jsonc
 cp <repo-path>/templates/eslint.config.mjs <project-name>/eslint.config.mjs
 cd <project-name> && npm i -D @biomejs/biome eslint typescript-eslint eslint-plugin-import \
   eslint-plugin-sonarjs eslint-plugin-security eslint-plugin-eslint-comments
@@ -307,7 +307,7 @@ Confirm each item before reporting done:
 - [ ] `CLAUDE.md` copied from `templates/CLAUDE.md` (not inlined) with project name and description filled in
 - [ ] `.gitignore`, `.env.example`, `README.md`, and `CLAUDE.local.md` present (`CLAUDE.local.md` gitignored)
 - [ ] `.claude/rules/starter-patterns.md` written
-- [ ] Lint configs copied + deps installed - `biome.json` + `eslint.config.mjs` (TS/JS) or `ruff.toml` + `pyrightconfig.json` (Python); skipped for other stacks
+- [ ] Lint configs copied + deps installed - `biome.jsonc` + `eslint.config.mjs` (TS/JS) or `ruff.toml` + `pyrightconfig.json` (Python); skipped for other stacks
 - [ ] Foundation templates copied - env boundary + error registry + truncator for the stack (TS or Python); skipped for other stacks
 - [ ] Hooks present in `~/.claude/hooks/` and configured in `settings.json` (installed now if selected, or already detected in Phase 0)
 - [ ] Skills present in `~/.claude/skills/` (missing ones installed if selected; already-present ones left as-is)

@@ -1,6 +1,6 @@
 # Lint Rules for AI-Driven Codebases
 
-Drop `templates/biome.json` and `templates/eslint.config.mjs` into any TypeScript project scaffolded from this repo. Biome runs first (format + fast syntactic rules, with autofix); ESLint runs second (type-aware + plugin-specific rules). This doc explains **why** those rules and not others, and **which tool owns which rule**.
+Drop `templates/biome.jsonc` and `templates/eslint.config.mjs` into any TypeScript project scaffolded from this repo. Biome runs first (format + fast syntactic rules, with autofix); ESLint runs second (type-aware + plugin-specific rules). This doc explains **why** those rules and not others, and **which tool owns which rule**.
 
 ## Biome vs ESLint split
 
@@ -104,7 +104,7 @@ A useful heuristic: if a rule fires and the agent suppresses it without fixing, 
 ## Install
 
 ```bash
-cp <repo>/templates/biome.json <project>/biome.json
+cp <repo>/templates/biome.jsonc <project>/biome.jsonc
 cp <repo>/templates/eslint.config.mjs <project>/eslint.config.mjs
 cd <project>
 npm i -D @biomejs/biome eslint typescript-eslint eslint-plugin-import \

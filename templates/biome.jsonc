@@ -1,13 +1,16 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
-  "//": "Biome config for AI-agent-driven TypeScript codebases. Pairs with eslint.config.mjs - Biome handles fast syntactic rules + formatting; ESLint keeps type-aware and plugin-specific rules. Rationale in guides/lint-rules-for-ai.md.",
+  "$schema": "https://biomejs.dev/schemas/2.5.2/schema.json",
+  // Biome config for AI-agent-driven TypeScript codebases. Pairs with
+  // eslint.config.mjs - Biome handles fast syntactic rules + formatting;
+  // ESLint keeps type-aware and plugin-specific rules.
+  // Rationale and tier-by-tier breakdown: guides/lint-rules-for-ai.md.
   "vcs": {
     "enabled": true,
     "clientKind": "git",
     "useIgnoreFile": true
   },
   "files": {
-    "ignore": ["dist/**", "build/**", "coverage/**", "node_modules/**"]
+    "includes": ["**", "!**/dist/**", "!**/build/**", "!**/coverage/**", "!**/node_modules/**"]
   },
   "formatter": {
     "enabled": true,
@@ -25,7 +28,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": false,
+      "preset": "none",
       "correctness": {
         "noUnusedVariables": {
           "level": "error",
@@ -35,7 +38,6 @@
         "noUnreachable": "error",
         "noConstantCondition": "error",
         "noConstantMathMinMaxClamp": "error",
-        "noSelfCompare": "error",
         "noInvalidUseBeforeDeclaration": "error"
       },
       "suspicious": {
@@ -50,14 +52,13 @@
         "noSelfCompare": "error",
         "noDuplicateObjectKeys": "error",
         "noDuplicateParameters": "error",
-        "noFallthroughSwitchClause": "error"
+        "noFallthroughSwitchClause": "error",
+        "noVar": "error"
       },
       "style": {
         "useConst": "error",
-        "noVar": "error",
         "useTemplate": "error",
         "useShorthandAssign": "error",
-        "useShorthandPropertyAssignment": "error",
         "useConsistentArrayType": {
           "level": "error",
           "options": { "syntax": "shorthand" }
@@ -97,7 +98,7 @@
   },
   "overrides": [
     {
-      "include": ["**/*.{test,spec}.{ts,tsx}", "tests/**/*.{ts,tsx}"],
+      "includes": ["**/*.{test,spec}.{ts,tsx}", "**/tests/**/*.{ts,tsx}"],
       "linter": {
         "rules": {
           "style": { "noNonNullAssertion": "off" }

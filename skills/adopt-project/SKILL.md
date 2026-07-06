@@ -110,7 +110,7 @@ is applied unapproved.
 
 **TypeScript:**
 
-- **No linter** → copy `templates/biome.json` + `templates/eslint.config.mjs`
+- **No linter** → copy `templates/biome.jsonc` + `templates/eslint.config.mjs`
   from the repo, install deps (see AGENT.md step 4 there), run on the
   codebase, and report the damage. Where existing code fails a rule en masse,
   downgrade that rule to `warn` with a ratchet note instead of fixing

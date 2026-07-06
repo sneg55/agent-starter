@@ -79,7 +79,7 @@ chmod +x ~/.claude/hooks/*.sh ~/.claude/hooks/lib/*.sh
 - **Python:** runs `ruff check --fix`, then `ruff format`, on `.py` files when a ruff binary is available (`.venv/bin/ruff` or on PATH). No-ops when ruff or a project root (pyproject/setup.py/requirements/.git) is absent.
 - **Python type-check:** opt-in `mypy` per project (the type-aware step, like `tsc` on the TS path): `touch .claude/enable-typecheck-on-edit` in the project root. The marker is your consent - when it's present and no mypy binary is found (`.venv/bin/mypy` or on PATH), the hook installs mypy (into `.venv` when present, otherwise via `pip`/`python3 -m pip`) rather than silently skipping. It then runs `mypy <file>` and blocks (exit 2) on type errors. If the install fails (no network/pip), it warns without blocking the edit.
 
-Pairs with `templates/biome.json` + `templates/eslint.config.mjs` (TS) and `templates/ruff.toml` + `templates/pyrightconfig.json` (Python). See `guides/lint-rules-for-ai.md` for the rule rationale and split.
+Pairs with `templates/biome.jsonc` + `templates/eslint.config.mjs` (TS) and `templates/ruff.toml` + `templates/pyrightconfig.json` (Python). See `guides/lint-rules-for-ai.md` for the rule rationale and split.
 
 Add to `settings.json`:
 

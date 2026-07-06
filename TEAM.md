@@ -19,7 +19,7 @@ touch anything:
 | `.claude/rules/starter-patterns.md` | skills (`~/.claude/skills/`) |
 | hook **wiring** in `.claude/settings.json` | plugins (install into `~/.claude`, trust-gated) |
 | **vendored** hook scripts in `.claude/hooks/` | |
-| lint configs (`ruff.toml`, ESLint, `biome.json`) | |
+| lint configs (`ruff.toml`, ESLint, `biome.jsonc`) | |
 | `.harness/reflections/` (ledger stays gitignored) | |
 
 The single biggest decision is **hooks**: ship them per-machine (lighter, stays
