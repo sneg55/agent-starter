@@ -64,10 +64,15 @@ chmod +x ~/.claude/hooks/*.sh ~/.claude/hooks/lib/*.sh
 ### check-file-size.sh
 **Event:** PostToolUse (Write, Edit)
 **What it does:** Checks every file Claude writes or edits (wire to both - a file can grow past the limit through repeated Edits):
-- **>300 lines: BLOCKS the write** (exit 2) and tells Claude to split the file
-- **>200 lines: WARNS** that the file is getting large
+- **Modules** (`.ts`, `.py`, ...): **>300 lines BLOCKS** the write (exit 2), **>200 WARNS**
+- **Stylesheets** (`.css`, `.scss`, `.sass`, `.less`): **>400 BLOCKS**, **>250 WARNS**
 - Skips non-code files (.md, .json, .yaml, etc.)
-- Suggests specific extraction targets (types, constants, validation, utils)
+- Suggests extraction targets that fit the language: types/constants/validation/utils
+  for modules, and layers (tokens, base, components, states) for stylesheets
+
+Stylesheets get their own tier because they have no types, constants, or helper
+functions to extract, so the module advice is noise for them, and 200 lines is tight
+for a language whose unit is roughly one declaration per line.
 
 ### lint-on-edit.sh
 **Event:** PostToolUse (Write, Edit)
@@ -193,6 +198,15 @@ Add to `settings.json`:
 `lib/log-event.sh` is a best-effort helper the enforcement hooks call when they
 block or warn. It appends one JSON event to the project's `.harness/ledger.jsonl`
 and always exits 0, so logging can never break a hook.
+
+Three properties the metric depends on:
+- **One ledger per repo.** The root is the git toplevel, so an edit inside a workspace
+  member (`web/`, with its own `package.json`) does not fork a second ledger there.
+- **Repo-relative paths**, so `harness-ledger-stats.sh` can cluster by real prefix.
+  Absolute paths collapse every event into one useless `/Users` bucket.
+- **Exact duplicates are dropped.** A hook registered twice (say, once by a plugin and
+  again in `settings.json`) fires twice per edit and would otherwise double every
+  count, silently inflating the metric `/reflect` reports.
 
 `harness-ledger-stats.sh` reads that ledger and prints per-rule counts plus the
 `recurring_events` metric (events in `(rule, path-prefix)` clusters seen ≥ N times
