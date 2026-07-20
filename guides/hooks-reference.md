@@ -149,10 +149,41 @@ Hooks let you run shell commands, LLM prompts, verification agents, or HTTP webh
 - `statusMessage` - shown during execution
 - `once` - remove hook after first execution
 
-### Special Variables
-- `$ARGUMENTS` - full hook input JSON
-- `$ARGUMENTS[0]`, `$0` - indexed access to arguments
-- `$ENV_VAR` - environment variable interpolation (http headers only, must be in allowedEnvVars)
+### Hook input: JSON on stdin
+
+**A `command` hook receives its input as JSON on stdin. There is no `$ARGUMENTS`
+variable.** Reading only `$ARGUMENTS` produces a hook that exits 0 on every real
+invocation: it looks installed, logs nothing, and enforces nothing.
+
+```json
+{
+  "session_id": "abc123",
+  "transcript_path": "/home/user/.claude/projects/.../transcript.jsonl",
+  "cwd": "/home/user/my-project",
+  "permission_mode": "default",
+  "hook_event_name": "PreToolUse",
+  "tool_name": "Bash",
+  "tool_input": { "command": "npm test" }
+}
+```
+
+The tool's own arguments are nested under `.tool_input`, so it is
+`.tool_input.file_path` and `.tool_input.command`, not `.file_path` / `.command`.
+
+```bash
+COMMAND=$(jq -r '.tool_input.command // empty')
+```
+
+### Environment variables
+
+Set for every hook process: `$CLAUDE_PROJECT_DIR`, `$CLAUDE_PLUGIN_ROOT`,
+`$CLAUDE_PLUGIN_DATA`, `$CLAUDE_EFFORT`, `$CLAUDE_CODE_REMOTE`,
+`$CLAUDE_CODE_BRIDGE_SESSION_ID`. `$ENV_VAR` interpolation applies to http
+headers only, and the variable must be listed in `allowedEnvVars`.
+
+`prompt`-type hooks are the exception: `$ARGUMENTS` interpolates the hook input
+into the prompt string. That is a settings.json template substitution, not
+something a shell script can read.
 
 ---
 
@@ -168,7 +199,7 @@ Hooks let you run shell commands, LLM prompts, verification agents, or HTTP webh
         "hooks": [
           {
             "type": "command",
-            "command": "eslint --fix \"$(echo $ARGUMENTS | jq -r '.file_path')\"",
+            "command": "eslint --fix \"$(jq -r '.tool_input.file_path')\"",
             "timeout": 30,
             "statusMessage": "Linting..."
           }
@@ -189,7 +220,7 @@ Hooks let you run shell commands, LLM prompts, verification agents, or HTTP webh
         "hooks": [
           {
             "type": "command",
-            "command": "echo \"$ARGUMENTS\" | grep -qE '(force.push|--force|--hard|rm -rf /)' && echo 'BLOCKED: dangerous command' >&2 && exit 2 || exit 0",
+            "command": "jq -r '.tool_input.command' | grep -qE '(force.push|--force|--hard|rm -rf /)' && echo 'BLOCKED: dangerous command' >&2 && exit 2 || exit 0",
             "if": "Bash(git *)"
           }
         ]
@@ -294,7 +325,7 @@ Hooks let you run shell commands, LLM prompts, verification agents, or HTTP webh
         "hooks": [
           {
             "type": "command",
-            "command": "echo \"$ARGUMENTS\" | jq -r '.file_path' | grep -q '\\.test\\.' && npm test -- --bail || exit 0",
+            "command": "jq -r '.tool_input.file_path' | grep -q '\\.test\\.' && npm test -- --bail || exit 0",
             "timeout": 60,
             "statusMessage": "Running tests..."
           }
@@ -315,7 +346,7 @@ Hooks let you run shell commands, LLM prompts, verification agents, or HTTP webh
         "hooks": [
           {
             "type": "command",
-            "command": "echo \"$ARGUMENTS\" | jq -r '.file_path' | grep -qE '(package-lock\\.json|\\.env|secrets)' && echo 'BLOCKED: protected file' >&2 && exit 2 || exit 0"
+            "command": "jq -r '.tool_input.file_path' | grep -qE '(package-lock\\.json|\\.env|secrets)' && echo 'BLOCKED: protected file' >&2 && exit 2 || exit 0"
           }
         ]
       }
@@ -372,8 +403,12 @@ The `check-silent-errors.sh` script scans written files for swallowed exceptions
 # Block writes that introduce silent error handling
 # Catches: bare except, except-pass, empty catch {}, catch-with-only-console.log
 
-FILE_PATH=$(echo "$ARGUMENTS" | jq -r '.file_path // .path // empty' 2>/dev/null)
-[ -z "$FILE_PATH" ] && FILE_PATH="$1"
+# Claude Code pipes the tool payload as JSON on stdin. Check $1 first so a CI
+# caller passing a path never blocks on a `cat` with no stdin behind it.
+FILE_PATH="${1:-}"
+if [ -z "$FILE_PATH" ] && [ ! -t 0 ]; then
+  FILE_PATH=$(cat 2>/dev/null | jq -r '.tool_input.file_path // empty' 2>/dev/null)
+fi
 [ -z "$FILE_PATH" ] || [ ! -f "$FILE_PATH" ] && exit 0
 
 VIOLATIONS=""

@@ -66,12 +66,16 @@ Instead:
      }
    }
    ```
-3. The wired hooks are portable as-is - they read tool input from `$ARGUMENTS`
-   and `lib/log-event.sh` finds the project root by walking up. (The `$HOME`
-   references in `block-dangerous-commands.sh` are the intentional dangerous-`rm`
-   detector, not a path dependency.) Smoke-test one before committing:
+3. The wired hooks are portable as-is - they read the tool payload as JSON on
+   stdin (the contract Claude Code uses) and `lib/log-event.sh` finds the project
+   root by walking up. (The `$HOME` references in `block-dangerous-commands.sh`
+   are the intentional dangerous-`rm` detector, not a path dependency.)
+   Smoke-test one before committing, and drive it via stdin: a hook that only
+   reads `$ARGUMENTS` passes an `$ARGUMENTS` smoke test while enforcing nothing
+   in production.
    ```bash
-   ARGUMENTS='{"file_path":"<some-file-over-300-lines>"}' bash .claude/hooks/check-file-size.sh; echo "exit $?"   # expect exit 2
+   echo '{"tool_input":{"file_path":"<some-file-over-300-lines>"}}' \
+     | bash .claude/hooks/check-file-size.sh; echo "exit $?"   # expect exit 2
    ```
 
 ## .gitignore: share team config, keep personal state private

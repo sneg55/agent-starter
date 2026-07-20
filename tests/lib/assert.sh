@@ -14,3 +14,12 @@ assert_eq() {
   echo "    actual:   [$2]"
   return 1
 }
+
+# Build the tool payload Claude Code pipes to a command hook on stdin.
+# Usage: payload <file_path> [tool_name] | bash "$HOOK"
+# Tests must drive hooks this way: a hook that only reads $ARGUMENTS passes an
+# $ARGUMENTS-based test while being a silent no-op in production.
+payload() {
+  jq -nc --arg f "$1" --arg t "${2:-Edit}" \
+    '{hook_event_name:"PostToolUse",tool_name:$t,tool_input:{file_path:$f}}'
+}

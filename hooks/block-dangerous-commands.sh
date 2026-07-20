@@ -19,8 +19,20 @@ set -u
 
 [ "${CLAUDE_ALLOW_DANGEROUS:-0}" = "1" ] && exit 0
 
-CMD=$(echo "${ARGUMENTS:-}" | jq -r '.command // empty' 2>/dev/null)
-[ -z "$CMD" ] && CMD="${1:-}"
+# Resolve the command across the three invocation styles. CI passes it as a
+# positional arg; Claude Code pipes the tool payload as JSON on stdin (command
+# under .tool_input.command); legacy callers set $ARGUMENTS. Check $1 FIRST so
+# the CI path never reads stdin (a blocking `cat` would hang there). Reading only
+# $ARGUMENTS made this a silent no-op under Claude Code, which uses stdin: the
+# hook exited 0 on every real invocation and blocked nothing.
+CMD="${1:-}"
+if [ -z "$CMD" ]; then
+  HOOK_INPUT="${ARGUMENTS:-}"
+  if [ -z "$HOOK_INPUT" ] && [ ! -t 0 ]; then
+    HOOK_INPUT=$(cat 2>/dev/null)
+  fi
+  CMD=$(printf '%s' "$HOOK_INPUT" | jq -r '.tool_input.command // .command // empty' 2>/dev/null)
+fi
 [ -z "$CMD" ] && exit 0
 
 check() { echo "$CMD" | grep -qE "$1"; }

@@ -7,7 +7,20 @@
 
 set -u
 
-FILE_PATH=$(echo "${ARGUMENTS:-}" | jq -r '.file_path // .path // empty' 2>/dev/null)
+# Resolve the read file path across the three invocation styles. CI passes it as
+# a positional arg; Claude Code pipes the tool payload as JSON on stdin (path
+# under .tool_input.file_path); legacy callers set $ARGUMENTS. Check $1 FIRST so
+# the CI path never reads stdin (a blocking `cat` would hang there). Reading only
+# $ARGUMENTS made this a silent no-op under Claude Code, which uses stdin: the
+# read log was never written, so require-read-before-edit.sh always failed open.
+FILE_PATH="${1:-}"
+if [ -z "$FILE_PATH" ]; then
+  HOOK_INPUT="${ARGUMENTS:-}"
+  if [ -z "$HOOK_INPUT" ] && [ ! -t 0 ]; then
+    HOOK_INPUT=$(cat 2>/dev/null)
+  fi
+  FILE_PATH=$(printf '%s' "$HOOK_INPUT" | jq -r '.tool_input.file_path // .tool_input.path // .file_path // .path // empty' 2>/dev/null)
+fi
 [ -z "$FILE_PATH" ] && exit 0
 
 SESSION_DIR="${CLAUDE_SESSION_DIR:-$HOME/.claude/session}"

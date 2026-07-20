@@ -5,8 +5,13 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 . "$ROOT/tests/lib/assert.sh"
 HOOK="$ROOT/hooks/block-dangerous-commands.sh"
 
+# Drive the hook the way Claude Code does: the tool payload as JSON on stdin,
+# with the command under .tool_input.command. Testing via $ARGUMENTS only would
+# pass against a hook that is a no-op in production.
 run() {
-  ARGUMENTS="{\"command\":$(printf '%s' "$1" | jq -Rs .)}" bash "$HOOK" 2>/dev/null
+  jq -nc --arg c "$1" \
+    '{hook_event_name:"PreToolUse",tool_name:"Bash",tool_input:{command:$c}}' \
+    | bash "$HOOK" 2>/dev/null
 }
 
 run "git push --force origin main"; assert_eq 2 $? "blocks git push --force"
@@ -28,13 +33,20 @@ run "chmod -R 777 /"; assert_eq 2 $? "blocks chmod -R 777 /"
 run "ls -la"; assert_eq 0 $? "allows ls"
 
 # Escape hatch
-CLAUDE_ALLOW_DANGEROUS=1 ARGUMENTS='{"command":"git push --force"}' bash "$HOOK" 2>/dev/null
+echo '{"tool_input":{"command":"git push --force"}}' \
+  | CLAUDE_ALLOW_DANGEROUS=1 bash "$HOOK" 2>/dev/null
 assert_eq 0 $? "CLAUDE_ALLOW_DANGEROUS=1 disables the hook"
+
+# Legacy invocation styles still resolve the command.
+ARGUMENTS='{"command":"git push --force"}' bash "$HOOK" </dev/null 2>/dev/null
+assert_eq 2 $? "legacy \$ARGUMENTS with top-level .command still blocks"
+bash "$HOOK" "git push --force" </dev/null 2>/dev/null
+assert_eq 2 $? "positional arg still blocks"
 
 # Logs a dangerous-command event in the project ledger (root found from cwd)
 tmp=$(mktemp -d)
 mkdir -p "$tmp/.git"
-(cd "$tmp" && ARGUMENTS='{"command":"git reset --hard"}' bash "$HOOK" 2>/dev/null); rc=$?
+(cd "$tmp" && echo '{"tool_input":{"command":"git reset --hard"}}' | bash "$HOOK" 2>/dev/null); rc=$?
 assert_eq 2 "$rc" "blocks inside tmp project"
 rule=$(jq -r '.rule' "$tmp/.harness/ledger.jsonl" 2>/dev/null | head -1)
 assert_eq dangerous-command "$rule" "logs rule=dangerous-command"

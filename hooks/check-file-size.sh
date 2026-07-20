@@ -4,7 +4,7 @@
 # (wire to both: files can grow past the limit through repeated Edits)
 #
 # Install: copy to ~/.claude/hooks/ and add to settings.json
-# The hook receives tool arguments via $ARGUMENTS
+# The hook receives the tool payload as JSON on stdin
 
 # Resolve the edited file path across the three invocation styles. CI passes it
 # as a positional arg; Claude Code pipes the tool payload as JSON on stdin (path

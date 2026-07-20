@@ -9,7 +9,7 @@ HOOK="$ROOT/hooks/check-file-size.sh"
 tmp=$(mktemp -d)
 mkdir -p "$tmp/.git" "$tmp/src"
 seq 1 301 > "$tmp/src/big.ts"
-ARGUMENTS="{\"file_path\":\"$tmp/src/big.ts\"}" bash "$HOOK"; rc=$?
+payload "$tmp/src/big.ts" | bash "$HOOK"; rc=$?
 assert_eq 2 "$rc" "blocks file >300 lines"
 assert_eq 0 "$([ -f "$tmp/.harness/ledger.jsonl" ]; echo $?)" "ledger written on block"
 rule=$(jq -r '.rule' "$tmp/.harness/ledger.jsonl" | head -1)
@@ -22,7 +22,7 @@ rm -rf "$tmp"
 tmp=$(mktemp -d)
 mkdir -p "$tmp/.git" "$tmp/src"
 seq 1 10 > "$tmp/src/ok.ts"
-ARGUMENTS="{\"file_path\":\"$tmp/src/ok.ts\"}" bash "$HOOK"; rc=$?
+payload "$tmp/src/ok.ts" | bash "$HOOK"; rc=$?
 assert_eq 0 "$rc" "passes small file"
 assert_eq 1 "$([ -f "$tmp/.harness/ledger.jsonl" ]; echo $?)" "no ledger for passing file"
 rm -rf "$tmp"
@@ -31,7 +31,7 @@ rm -rf "$tmp"
 tmp=$(mktemp -d)
 mkdir -p "$tmp/.git" "$tmp/src"
 seq 1 250 > "$tmp/src/warn.ts"
-ARGUMENTS="{\"file_path\":\"$tmp/src/warn.ts\"}" bash "$HOOK"; rc=$?
+payload "$tmp/src/warn.ts" | bash "$HOOK"; rc=$?
 assert_eq 0 "$rc" "warn path exits 0 (does not block)"
 assert_eq 0 "$([ -f "$tmp/.harness/ledger.jsonl" ]; echo $?)" "ledger written on warn"
 sev=$(jq -r '.severity' "$tmp/.harness/ledger.jsonl" | head -1)
@@ -46,7 +46,7 @@ rm -rf "$tmp"
 tmp=$(mktemp -d)
 mkdir -p "$tmp/.git" "$tmp/src"
 seq 1 240 > "$tmp/src/ok.css"
-ARGUMENTS="{\"file_path\":\"$tmp/src/ok.css\"}" bash "$HOOK"; rc=$?
+payload "$tmp/src/ok.css" | bash "$HOOK"; rc=$?
 assert_eq 0 "$rc" "240-line stylesheet passes"
 assert_eq 1 "$([ -f "$tmp/.harness/ledger.jsonl" ]; echo $?)" "no event for a passing stylesheet"
 rm -rf "$tmp"
@@ -55,7 +55,7 @@ rm -rf "$tmp"
 tmp=$(mktemp -d)
 mkdir -p "$tmp/.git" "$tmp/src"
 seq 1 260 > "$tmp/src/warn.css"
-ARGUMENTS="{\"file_path\":\"$tmp/src/warn.css\"}" bash "$HOOK"; rc=$?
+payload "$tmp/src/warn.css" | bash "$HOOK"; rc=$?
 assert_eq 0 "$rc" "260-line stylesheet warns without blocking"
 sev=$(jq -r '.severity' "$tmp/.harness/ledger.jsonl" | head -1)
 assert_eq warn "$sev" "stylesheet warn logged"
@@ -65,7 +65,7 @@ rm -rf "$tmp"
 tmp=$(mktemp -d)
 mkdir -p "$tmp/.git" "$tmp/src"
 seq 1 401 > "$tmp/src/huge.css"
-out=$(ARGUMENTS="{\"file_path\":\"$tmp/src/huge.css\"}" bash "$HOOK" 2>&1); rc=$?
+out=$(payload "$tmp/src/huge.css" | bash "$HOOK" 2>&1); rc=$?
 assert_eq 2 "$rc" "blocks stylesheet >400 lines"
 assert_eq 0 "$(printf '%s' "$out" | grep -qi 'Split by layer'; echo $?)" "stylesheet advice is split-by-layer"
 assert_eq 1 "$(printf '%s' "$out" | grep -q 'types.ts'; echo $?)" "stylesheet advice does not mention types.ts"
@@ -75,7 +75,7 @@ rm -rf "$tmp"
 tmp=$(mktemp -d)
 mkdir -p "$tmp/.git" "$tmp/src"
 seq 1 301 > "$tmp/src/big.ts"
-out=$(ARGUMENTS="{\"file_path\":\"$tmp/src/big.ts\"}" bash "$HOOK" 2>&1); rc=$?
+out=$(payload "$tmp/src/big.ts" | bash "$HOOK" 2>&1); rc=$?
 assert_eq 2 "$rc" "ts threshold unchanged at 300"
 assert_eq 0 "$(printf '%s' "$out" | grep -q 'types.ts'; echo $?)" "module advice still names types.ts"
 rm -rf "$tmp"
