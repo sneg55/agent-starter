@@ -149,7 +149,11 @@ Add to `settings.json`:
 **What it does:** Blocks destructive shell commands before they run: `git push --force`/`-f` (suggests `--force-with-lease`), `git reset --hard/--merge`, `git clean -f`, `git checkout -- .` / `git restore .`, recursive `rm` on `/`, `/*`, `~` or `$HOME`, and `chmod -R 777 /`.
 
 - **Exit 2** with the matched reason on stderr so Claude can pick a safer alternative.
-- Logs a `dangerous-command` event to the `.harness` ledger.
+- Logs a `dangerous-command` event to the `.harness` ledger, as a stable reason
+  code plus the command's *shape* (`force_push: git push ...`). The raw command
+  is **not** stored: a blocked command is the one most likely to be carrying a
+  token, a signed URL, or customer data, and the ledger is durable on-disk state.
+  Set `CLAUDE_LEDGER_VERBOSE=1` to keep the full command locally when debugging.
 - **Escape hatch:** set `CLAUDE_ALLOW_DANGEROUS=1` after the developer explicitly approves.
 
 Add to `settings.json`:
@@ -192,6 +196,35 @@ Add to `settings.json`:
 - **Exit 0** - success, proceed normally
 - **Exit 2** - BLOCK the action, stderr shown to Claude as error
 - **Other** - warning shown to user, doesn't block
+
+## Hook input: JSON on stdin
+
+Claude Code sends command hooks a JSON payload on **stdin**, with the tool's own
+arguments nested under `.tool_input`. There is no `$ARGUMENTS` variable for
+command hooks; that placeholder exists only for `type: "prompt"` hooks.
+
+Every hook here resolves its input through `lib/hook-input.sh`:
+
+```bash
+. "$(dirname "$0")/lib/hook-input.sh"
+hook_input_init "${1:-}"
+FILE_PATH=$(hook_input_file)     # or: CMD=$(hook_input_command)
+```
+
+It accepts a positional argument first (so CI and direct test invocation work
+without stdin), then `$ARGUMENTS` for legacy callers, then the stdin payload.
+
+**Malformed input is loud, not silent.** Non-empty input that isn't JSON exits 1
+with an explanation on stderr: visible to the user, but not blocking, since a
+parser bug should never be able to brick a session. Absent input stays exit 0,
+which is the legitimate case of a hook run outside Claude Code.
+
+This lives in one file for a reason. The same resolution block was previously
+pasted into each hook, so when it turned out to be wrong there was no single
+place to fix it: the correction reached three hooks and missed three others,
+which went on silently enforcing nothing. Test hooks by piping a real payload,
+never by setting `$ARGUMENTS` alone, or the test will pass against a hook that
+is a no-op in production.
 
 ## Self-improvement ledger
 
