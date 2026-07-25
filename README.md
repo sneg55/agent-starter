@@ -1,5 +1,12 @@
 # agent-starter
 
+[![License](https://img.shields.io/github/license/sneg55/agent-starter)](LICENSE)
+[![CI](https://github.com/sneg55/agent-starter/actions/workflows/ci.yml/badge.svg)](https://github.com/sneg55/agent-starter/actions/workflows/ci.yml)
+[![Stars](https://img.shields.io/github/stars/sneg55/agent-starter)](https://github.com/sneg55/agent-starter/stargazers)
+![Claude Code](https://img.shields.io/badge/Claude%20Code-D97757?logo=claude&logoColor=fff)
+![Bash](https://img.shields.io/badge/Bash-4EAA25?logo=gnubash&logoColor=fff)
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=fff)
+
 Skills, hooks, templates, and engineering guides for bootstrapping AI-agent-friendly projects, with a per-project self-improvement loop.
 
 ## What it is
