@@ -171,7 +171,15 @@ fi
 
 if [ "$FAIL" -eq 1 ]; then
   printf '%s' "$OUT" >&2
-  [ -x "$(dirname "$0")/lib/log-event.sh" ] && "$(dirname "$0")/lib/log-event.sh" lint block "$FILE_PATH" "lint or typecheck failed"
+  # Log WHICH rules failed, not just that something did. A constant detail string
+  # makes the ledger uncountable: you cannot tell one rule breaking 200 times from
+  # 200 rules breaking once. ESLint stylish puts the rule id last on the line
+  # ("@typescript-eslint/no-unused-vars"); Biome prints "lint/suspicious/noExplicitAny".
+  # Both end in a slash-separated id, so take the last token of matching lines.
+  SIG=$( { printf '%s' "$OUT" | grep -oE 'lint/[a-zA-Z]+/[a-zA-Z0-9]+'
+           printf '%s' "$OUT" | awk '/^[[:space:]]*[0-9]+:[0-9]+[[:space:]]+(error|warning)/ {print $NF}'
+         } 2>/dev/null | sort -u | head -3 | paste -sd, -)
+  [ -x "$(dirname "$0")/lib/log-event.sh" ] && "$(dirname "$0")/lib/log-event.sh" lint block "$FILE_PATH" "lint: ${SIG:-unclassified}"
   exit 2
 fi
 
