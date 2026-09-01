@@ -47,6 +47,17 @@
             "statusMessage": "Checking command safety..."
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/rm-scope-guard.py\"",
+            "timeout": 5,
+            "statusMessage": "Checking rm scope..."
+          }
+        ]
       }
     ],
     "SessionStart": [
@@ -57,6 +68,27 @@
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/check-codebase-health.sh .",
             "timeout": 15,
             "statusMessage": "Checking codebase health..."
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/worktree-session-prompt.sh",
+            "timeout": 5,
+            "statusMessage": "Checking worktree..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/worktree-exit-offer.sh",
+            "timeout": 5
           }
         ]
       }

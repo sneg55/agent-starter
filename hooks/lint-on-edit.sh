@@ -171,7 +171,10 @@ fi
 
 if [ "$FAIL" -eq 1 ]; then
   printf '%s' "$OUT" >&2
-  [ -x "$(dirname "$0")/lib/log-event.sh" ] && "$(dirname "$0")/lib/log-event.sh" lint block "$FILE_PATH" "lint or typecheck failed"
+  RULE_IDS=$( { printf '%s' "$OUT" | grep -oE 'lint/[a-zA-Z]+/[a-zA-Z0-9]+'
+                printf '%s' "$OUT" | awk '/^[[:space:]]*[0-9]+:[0-9]+[[:space:]]+(error|warning)/ {print $NF}'
+              } 2>/dev/null | sort -u | head -3 | paste -sd, -)
+  [ -x "$(dirname "$0")/lib/log-event.sh" ] && "$(dirname "$0")/lib/log-event.sh" lint block "$FILE_PATH" "lint: ${RULE_IDS:-unclassified}"
   exit 2
 fi
 

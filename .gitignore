@@ -2,3 +2,5 @@
 docs/
 plans/
 .harness/ledger.jsonl
+__pycache__/
+*.pyc

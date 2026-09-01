@@ -189,12 +189,19 @@ Hooks wired by default:
 - `lint-on-edit.sh` - Biome + ESLint on save; ruff check + format for Python (PostToolUse:Write|Edit)
 - `check-silent-errors.sh` - block swallowed exceptions (PostToolUse:Write|Edit)
 - `block-dangerous-commands.sh` - block force-push, `reset --hard`, recursive rm on `/`/`~` (PreToolUse:Bash)
+- `rm-scope-guard.py` - block `rm` whose targets escape the working directory (PreToolUse:Bash)
+- `worktree-session-prompt.sh` - report shared-checkout vs worktree at session start (SessionStart)
+- `worktree-exit-offer.sh` - offer to leave a clean, fully pushed worktree (Stop)
 - `suggest-loop-improvements.sh` - on `/loop`, offer tighter drop-in rewrites via an interactive picker before it runs (UserPromptSubmit)
+
+Requires `jq` and `python3`.
 
 Optional: add `--with-read-guard` to also wire `track-reads.sh` +
 `require-read-before-edit.sh` (force Read before Edit). Recent Claude Code
 versions enforce read-before-edit natively, so only install it for older
-versions.
+versions. `--with-comment-guard` blocks edits that add comments or docstrings,
+and `--with-em-dash-guard` blocks em dashes in prose files; both are house
+style, so offer them rather than assuming them.
 
 Reference: `hooks/README.md` for full hook documentation and manual-install snippets.
 

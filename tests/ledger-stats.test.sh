@@ -60,4 +60,46 @@ rm -f "$empty"
 timeout 5 bash "$STATS" --ledger "$FIX" --since >/dev/null 2>&1; rc=$?
 assert_eq 0 "$rc" "trailing valueless flag does not hang"
 
+WORK=$(cd "$(mktemp -d)" && pwd -P)
+MAIN="$WORK/main"
+git init -q "$MAIN"
+git -C "$MAIN" config user.email t@example.com
+git -C "$MAIN" config user.name test
+printf 'seed\n' > "$MAIN/README.md"
+git -C "$MAIN" add README.md
+git -C "$MAIN" commit -qm seed
+mkdir -p "$MAIN/.harness"
+event() { jq -nc --arg r "$1" --arg f "$2" '{ts:"2026-06-01T00:00:00Z",rule:$r,severity:"block",file:$f,detail:"d"}'; }
+for _ in 1 2; do event file-size src/parsers/a.ts >> "$MAIN/.harness/ledger.jsonl"; done
+
+LINKED="$WORK/feature"
+git -C "$MAIN" worktree add -q -b feature "$LINKED"
+mkdir -p "$LINKED/.harness"
+event file-size src/parsers/b.ts >> "$LINKED/.harness/ledger.jsonl"
+
+got=$(cd "$MAIN" && bash "$STATS" --min-recurr 3)
+assert_eq "recurring file-size src/parsers 3" "$(printf '%s' "$got" | grep '^recurring file-size')" \
+  "linked worktree ledgers are merged into one cluster"
+assert_eq "events_total 3" "$(printf '%s' "$got" | grep '^events_total')" \
+  "events from every checkout are counted"
+
+event file-size "$MAIN/src/parsers/c.ts" >> "$MAIN/.harness/ledger.jsonl"
+got=$(cd "$MAIN" && bash "$STATS" --min-recurr 4)
+assert_eq "recurring file-size src/parsers 4" "$(printf '%s' "$got" | grep '^recurring file-size')" \
+  "an absolute path normalizes to the same repo-relative cluster"
+
+got=$(cd "$MAIN" && bash "$STATS" --ledger "$FIX")
+assert_eq "events_total 5" "$(printf '%s' "$got" | grep '^events_total')" \
+  "an explicit --ledger reads that file alone"
+
+SPACED="$WORK/dir with spaces"
+mkdir -p "$SPACED"
+cp "$FIX" "$SPACED/ledger.jsonl"
+got=$(bash "$STATS" --ledger "$SPACED/ledger.jsonl" 2>/dev/null)
+assert_eq "events_total 5" "$(printf '%s' "$got" | grep '^events_total')" \
+  "a ledger path containing spaces is not word-split"
+
+git -C "$MAIN" worktree remove --force "$LINKED"
+rm -rf "$WORK"
+
 exit $ASSERT_FAILED

@@ -80,4 +80,44 @@ assert_eq 2 "$rc" "ts threshold unchanged at 300"
 assert_eq 0 "$(printf '%s' "$out" | grep -q 'types.ts'; echo $?)" "module advice still names types.ts"
 rm -rf "$tmp"
 
+tmp=$(mktemp -d)
+mkdir -p "$tmp/src"
+git init -q "$tmp"
+seq 1 250 > "$tmp/src/page.mdx"
+payload "$tmp/src/page.mdx" | bash "$HOOK"; rc=$?
+assert_eq 0 "$rc" "prose extensions are skipped"
+assert_eq 1 "$([ -f "$tmp/.harness/ledger.jsonl" ]; echo $?)" "no event for prose"
+rm -rf "$tmp"
+
+tmp=$(mktemp -d)
+mkdir -p "$tmp/src"
+git init -q "$tmp"
+seq 1 260 > "$tmp/src/Header.astro"
+out=$(payload "$tmp/src/Header.astro" | bash "$HOOK" 2>&1); rc=$?
+assert_eq 0 "$rc" "260-line single-file component warns without blocking"
+assert_eq 0 "$(printf '%s' "$out" | grep -q 'scoped <style>'; echo $?)" \
+  "component advice keeps scoped style in place"
+rm -rf "$tmp"
+
+tmp=$(mktemp -d)
+mkdir -p "$tmp/src/.harness"
+git init -q "$tmp"
+mkdir -p "$tmp/.harness"
+printf 'WARN_THRESHOLD=80\nBLOCK_THRESHOLD=100\n' > "$tmp/.harness/file-size.conf"
+seq 1 150 > "$tmp/src/small.ts"
+payload "$tmp/src/small.ts" | bash "$HOOK"; rc=$?
+assert_eq 2 "$rc" "project config lowers the block threshold"
+rm -rf "$tmp"
+
+tmp=$(mktemp -d)
+mkdir -p "$tmp/src"
+git init -q "$tmp"
+mkdir -p "$tmp/.harness"
+printf 'WARN_THRESHOLD=900\nBLOCK_THRESHOLD=1000\nrm -rf /\n' > "$tmp/.harness/file-size.conf"
+seq 1 400 > "$tmp/src/big.ts"
+payload "$tmp/src/big.ts" | bash "$HOOK"; rc=$?
+assert_eq 0 "$rc" "project config raises the block threshold and is never sourced as shell"
+assert_eq 0 "$([ -d "$tmp" ]; echo $?)" "the config file's shell line did not execute"
+rm -rf "$tmp"
+
 exit $ASSERT_FAILED

@@ -25,4 +25,20 @@ check "skills/new-project/SKILL.md" "install.sh" "new-project uses the installer
 check "hooks/README.md" "install.sh" "hooks README documents the installer"
 check "hooks/README.md" "block-dangerous-commands" "hooks README documents the dangerous-commands hook"
 
+check "hooks/README.md" "rm-scope-guard" "hooks README documents the rm scope guard"
+check "hooks/README.md" "worktree-exit-offer" "hooks README documents the worktree pair"
+check "hooks/README.md" "check-new-comments" "hooks README documents the comment guard"
+check "hooks/README.md" "check-em-dash" "hooks README documents the em-dash guard"
+check "hooks/README.md" "file-size.conf" "hooks README documents per-project size thresholds"
+check README.md "rm-scope-guard" "README lists the rm scope guard"
+check README.md "with-comment-guard" "README names the comment-guard flag"
+check install.sh "with-em-dash-guard" "installer offers the em-dash flag"
+check "hooks/hooks.json" "worktree-exit-offer" "plugin wires the Stop hook"
+check "hooks/hooks.json" "rm-scope-guard" "plugin wires the rm scope guard"
+check "templates/CLAUDE.md" "Verify a problem before reporting it" "CLAUDE template carries the verify rule"
+check "templates/CLAUDE.md" "Dispatching subagents" "CLAUDE template carries the subagent rules"
+check "templates/CLAUDE.md" "One worker per worktree" "CLAUDE template carries the worktree rule"
+check "templates/CLAUDE.md" "Never commit internal documents" "CLAUDE template carries the public-repo rule"
+check "templates/CLAUDE.md" "blocked by a classifier" "CLAUDE template carries the classifier rule"
+
 exit $ASSERT_FAILED

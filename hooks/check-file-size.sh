@@ -15,9 +15,8 @@ if [ -z "$FILE_PATH" ] || [ ! -f "$FILE_PATH" ]; then
   exit 0
 fi
 
-# Skip non-code files
 case "$FILE_PATH" in
-  *.md|*.json|*.yaml|*.yml|*.toml|*.lock|*.svg|*.png|*.jpg|*.csv|*.txt)
+  *.md|*.mdx|*.markdown|*.json|*.yaml|*.yml|*.toml|*.lock|*.svg|*.png|*.jpg|*.csv|*.txt)
     exit 0
     ;;
 esac
@@ -40,6 +39,17 @@ case "$FILE_PATH" in
 
 Keep each layer under the warn threshold. Do NOT split in the middle of a component."
     ;;
+  *.astro|*.vue|*.svelte)
+    WARN_THRESHOLD=250
+    BLOCK_THRESHOLD=400
+    SPLIT_ADVICE="Split by concern, keeping the single-file-component unit intact:
+- extract a child component (with its own scoped <style>) for a distinct region
+- move a long client <script> into src/scripts/*.ts and import it
+- lift genuinely shared rules into src/styles/*.css; keep component-scoped CSS in place
+- move data arrays and helpers into src/lib/*.ts
+
+Do NOT flatten scoped <style> into a global stylesheet to win back lines."
+    ;;
   *)
     WARN_THRESHOLD=200
     BLOCK_THRESHOLD=300
@@ -54,6 +64,15 @@ Each extracted file should handle a single responsibility.
 Do NOT just move code around - ensure clean imports and no circular dependencies."
     ;;
 esac
+
+CONF_DIR=$(cd "$(dirname "$FILE_PATH")" 2>/dev/null && git rev-parse --show-toplevel 2>/dev/null)
+CONF="${CONF_DIR}/.harness/file-size.conf"
+if [ -n "$CONF_DIR" ] && [ -f "$CONF" ]; then
+  PROJECT_WARN=$(sed -n 's/^WARN_THRESHOLD=\([0-9][0-9]*\).*/\1/p' "$CONF" | tail -1)
+  PROJECT_BLOCK=$(sed -n 's/^BLOCK_THRESHOLD=\([0-9][0-9]*\).*/\1/p' "$CONF" | tail -1)
+  [ -n "$PROJECT_WARN" ] && WARN_THRESHOLD="$PROJECT_WARN"
+  [ -n "$PROJECT_BLOCK" ] && BLOCK_THRESHOLD="$PROJECT_BLOCK"
+fi
 
 if [ "$LINE_COUNT" -gt "$BLOCK_THRESHOLD" ]; then
   cat >&2 <<EOF

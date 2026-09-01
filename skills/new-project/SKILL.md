@@ -235,14 +235,19 @@ bash <repo-path>/install.sh
 ```
 
 Hook behavior (wired by default):
-- `check-file-size.sh` - runs after every Write/Edit. Blocks (exit 2) files over 300 lines; warns over 200 lines. Skips `.md`, `.json`, `.yaml`.
+- `check-file-size.sh` - runs after every Write/Edit. Blocks (exit 2) files over 300 lines; warns over 200 lines. Skips `.md`, `.json`, `.yaml`. Override per project with `.harness/file-size.conf`.
 - `lint-on-edit.sh` - Biome + ESLint on save for JS/TS; ruff check + format for Python.
 - `check-silent-errors.sh` - blocks writes that introduce swallowed exceptions.
 - `block-dangerous-commands.sh` - blocks force-push, `git reset --hard`, recursive rm on `/`/`~`, before they run.
+- `rm-scope-guard.py` - blocks any `rm` whose targets escape the working directory, and allows the rest. Complements the hook above, which only catches the catastrophic roots.
 - `check-codebase-health.sh` - runs at session start. Reports files over 500 lines that need splitting. Silent when healthy.
+- `worktree-session-prompt.sh` - at session start, says whether this is the shared main checkout or a linked worktree, and has Claude ask before editing the shared one. Two agents in one checkout is how a branch flip silently reverts a peer's edits.
+- `worktree-exit-offer.sh` - on Stop, offers to leave the worktree once it is clean and fully pushed, which is the one moment exiting loses nothing.
 - `suggest-loop-improvements.sh` - when you run `/loop`, proposes 2-3 tighter drop-in rewrites (explicit success criteria, stop condition, scope, verification) and lets you pick one via an interactive menu. Scoped to `/loop` only (client-side commands like `/goal` run before Claude's turn, so they can't be gated).
 
-Optional: `--with-read-guard` also wires `track-reads.sh` + `require-read-before-edit.sh`. Recent Claude Code versions enforce read-before-edit natively, so only add it for older versions.
+Requires `jq` and `python3`.
+
+Optional: `--with-read-guard` also wires `track-reads.sh` + `require-read-before-edit.sh`. Recent Claude Code versions enforce read-before-edit natively, so only add it for older versions. `--with-comment-guard` blocks edits that add comments or docstrings; `--with-em-dash-guard` blocks em dashes in `.md`/`.mdx`/`.markdown`. Both are house style rather than correctness rules, so ask before wiring them.
 
 ### 6. Install skills (if selected and not already installed)
 
