@@ -82,19 +82,24 @@ Install all skills globally with [npx skills](https://github.com/vercel-labs/ski
 
 ### Hooks
 
-Ready-to-use hook scripts in [`hooks/`](hooks/). The plugin wires the first six; `install.sh` wires them into `~/.claude`. See [`guides/hooks-reference.md`](guides/hooks-reference.md) for the hook system itself.
+Ready-to-use hook scripts in [`hooks/`](hooks/). The plugin wires the nine defaults; `install.sh` wires them into `~/.claude`, and four more are opt-in behind flags. See [`guides/hooks-reference.md`](guides/hooks-reference.md) for the hook system itself. Needs `jq` and `python3`.
 
 | Hook | Fires on | What it does |
 |------|----------|--------------|
-| `check-file-size.sh` | Write/Edit | Warns when a file exceeds size targets. |
+| `check-file-size.sh` | Write/Edit | Warns when a file exceeds size targets. Per-project overrides via `.harness/file-size.conf`. |
 | `lint-on-edit.sh` | Write/Edit | Lints + typechecks the file just written. |
 | `check-silent-errors.sh` | Write/Edit | Blocks writes that introduce swallowed/silent error handling. |
 | `block-dangerous-commands.sh` | Bash | Blocks destructive shell commands before they run. |
+| `rm-scope-guard.py` | Bash | Blocks `rm` whose targets escape the working directory; allows the rest. |
 | `check-codebase-health.sh` | Session start | Surfaces codebase-health signals at the start of a session. |
+| `worktree-session-prompt.sh` | Session start | Reports whether this is the shared main checkout or a worktree, and asks before editing the shared one. |
+| `worktree-exit-offer.sh` | Stop | Offers to leave a worktree once it is clean and fully pushed. |
 | `suggest-loop-improvements.sh` | Prompt submit | On `/loop`, injects an instruction-review step. |
-| `track-reads.sh` + `require-read-before-edit.sh` | Read / Write+Edit | Opt-in read-guard pair (`--with-read-guard`): blocks edits to files not read this session. |
+| `track-reads.sh` + `require-read-before-edit.sh` | Read / Write+Edit | Opt-in (`--with-read-guard`): blocks edits to files not read this session. |
+| `check-new-comments.py` | Write/Edit/MultiEdit | Opt-in (`--with-comment-guard`): blocks edits that add comments or docstrings. Toolchain directives pass. |
+| `check-em-dash.py` | Write/Edit | Opt-in (`--with-em-dash-guard`): blocks em dashes in `.md` / `.mdx` / `.markdown`. |
 | `lib/log-event.sh` | called by hooks | Appends one JSON event to `.harness/ledger.jsonl` (the loop's signal capture). |
-| `harness-ledger-stats.sh` | on demand | Computes the `recurring_events` metric over the ledger. |
+| `harness-ledger-stats.sh` | on demand | Computes the `recurring_events` metric over the ledger, merged across worktrees. |
 
 ### Templates
 
@@ -110,7 +115,7 @@ Drop-in configs in [`templates/`](templates/). Copy the ones you need.
 
 **Context & scaffolding:**
 - `truncate-for-context.ts` / `truncate_for_context.py`: head+tail truncator for tool output so `cat large.log` and `npm test` don't blow the context window.
-- `CLAUDE.md`: project-instructions template with the full 4-type [memory taxonomy](#memory-taxonomy), file format, and git safety rules.
+- `CLAUDE.md`: project-instructions template with the full 4-type [memory taxonomy](#memory-taxonomy), file format, and git safety rules. Also carries the working rules that hooks cannot enforce: verify a problem before reporting it, how to pick a subagent's model, one worker per worktree, freeze a shared contract before parallel dispatch, never commit internal documents to a public repo, and what to do when a classifier blocks a tool call. An optional response-style section (lead with the ask, no time estimates, no made-up numbers, no uninvited docs) sits at the end for deleting if it is not your taste.
 - `NEW_PROJECT_PROMPT.md`: copy-paste prompt to scaffold a project from scratch. Fill in the `{{placeholders}}`.
 
 ### Guides

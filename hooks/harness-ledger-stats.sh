@@ -15,11 +15,12 @@
 set -u
 
 LEDGER=".harness/ledger.jsonl"
+LEDGER_EXPLICIT=0
 SINCE=""
 MINR=3
 while [ $# -gt 0 ]; do
   case "$1" in
-    --ledger)     LEDGER="${2:-}"; shift $(( $# >= 2 ? 2 : 1 )) ;;
+    --ledger)     LEDGER="${2:-}"; LEDGER_EXPLICIT=1; shift $(( $# >= 2 ? 2 : 1 )) ;;
     --since)      SINCE="${2:-}";  shift $(( $# >= 2 ? 2 : 1 )) ;;
     --min-recurr) MINR="${2:-3}";  shift $(( $# >= 2 ? 2 : 1 )) ;;
     *) shift ;;
@@ -37,16 +38,32 @@ if [ -n "$SINCE" ]; then
   esac
 fi
 
-if [ ! -f "$LEDGER" ]; then
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+LEDGERS=()
+if [ "$LEDGER_EXPLICIT" -eq 1 ] || [ -z "$REPO_ROOT" ]; then
+  [ -f "$LEDGER" ] && LEDGERS=("$LEDGER")
+else
+  while IFS= read -r wt; do
+    [ -f "$wt/.harness/ledger.jsonl" ] && LEDGERS+=("$wt/.harness/ledger.jsonl")
+  done < <(git worktree list --porcelain 2>/dev/null | sed -n 's/^worktree //p')
+fi
+
+if [ "${#LEDGERS[@]}" -eq 0 ]; then
   printf 'events_total 0\nevents_window 0\nrecurring_events 0\n'
   exit 0
 fi
 
-jq -nRr --arg since "$SINCE" --argjson minr "$MINR" '
+MAIN_CHECKOUT=$(git worktree list --porcelain 2>/dev/null | sed -n 's/^worktree //p' | head -1)
+[ -z "$MAIN_CHECKOUT" ] && MAIN_CHECKOUT="${REPO_ROOT:-.}"
+
+cat "${LEDGERS[@]}" | jq -nRr --arg since "$SINCE" --argjson minr "$MINR" --arg root "$MAIN_CHECKOUT" '
   [ inputs
     | (fromjson? // empty)
     | select(type == "object" and .rule != null)
-    | . + { prefix: ((.file // "") | split("/") | .[0:2] | join("/")) }
+    | . + { file: ((.file // "")
+                   | ltrimstr($root + "/")
+                   | sub("^\\.claude/worktrees/[^/]+/"; "")) }
+    | . + { prefix: (.file | split("/") | .[0:2] | join("/")) }
   ] as $all
   | ( if $since == "" then $all
       else [ $all[] | select((.ts // "") >= $since) ] end ) as $win
@@ -61,4 +78,4 @@ jq -nRr --arg since "$SINCE" --argjson minr "$MINR" '
       + ( $rec    | map("recurring \(.rule) \(.prefix) \(.n)") )
       + [ "recurring_events \(($rec | map(.n) | add) // 0)" ] )
   | .[]
-' "$LEDGER"
+'

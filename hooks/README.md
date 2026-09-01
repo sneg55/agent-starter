@@ -11,18 +11,23 @@ hooks (and `lib/`) to `~/.claude/hooks/`, stamps the installed version into
 duplicate):
 
 ```bash
-./install.sh                    # default hook set
-./install.sh --with-read-guard  # also wire track-reads + require-read-before-edit
+./install.sh                       # default hook set
+./install.sh --with-read-guard     # also wire track-reads + require-read-before-edit
+./install.sh --with-comment-guard  # also wire check-new-comments
+./install.sh --with-em-dash-guard  # also wire check-em-dash
+./install.sh --help                # every flag
 ```
+
+Requires `jq` and `python3`.
 
 Manual alternative:
 
 1. Copy hooks to your Claude config:
 ```bash
 mkdir -p ~/.claude/hooks
-cp hooks/*.sh ~/.claude/hooks/
+cp hooks/*.sh hooks/*.py ~/.claude/hooks/
 mkdir -p ~/.claude/hooks/lib && cp hooks/lib/*.sh ~/.claude/hooks/lib/
-chmod +x ~/.claude/hooks/*.sh ~/.claude/hooks/lib/*.sh
+chmod +x ~/.claude/hooks/*.sh ~/.claude/hooks/*.py ~/.claude/hooks/lib/*.sh
 ```
 
 2. Add to `~/.claude/settings.json` (or `.claude/settings.json` per-project):
@@ -66,13 +71,28 @@ chmod +x ~/.claude/hooks/*.sh ~/.claude/hooks/lib/*.sh
 **What it does:** Checks every file Claude writes or edits (wire to both - a file can grow past the limit through repeated Edits):
 - **Modules** (`.ts`, `.py`, ...): **>300 lines BLOCKS** the write (exit 2), **>200 WARNS**
 - **Stylesheets** (`.css`, `.scss`, `.sass`, `.less`): **>400 BLOCKS**, **>250 WARNS**
-- Skips non-code files (.md, .json, .yaml, etc.)
+- **Single-file components** (`.astro`, `.vue`, `.svelte`): **>400 BLOCKS**, **>250 WARNS**
+- Skips non-code files (.md, .mdx, .markdown, .json, .yaml, etc.)
 - Suggests extraction targets that fit the language: types/constants/validation/utils
   for modules, and layers (tokens, base, components, states) for stylesheets
 
 Stylesheets get their own tier because they have no types, constants, or helper
 functions to extract, so the module advice is noise for them, and 200 lines is tight
 for a language whose unit is roughly one declaration per line.
+
+Single-file components get a tier for the same reason: the component, its scoped
+stylesheet, and its client script in one file is the framework's unit, not a smell. A
+301-line `Header.astro` was 21 lines of frontmatter, 31 of markup, 149 of scoped
+`<style>`, and 100 of client `<script>`. Scored against the module default it is the CSS
+that trips the limit, and flattening it into a global sheet to win back lines would lose
+the scoping and make the code worse.
+
+**Per-project thresholds:** drop a `.harness/file-size.conf` in the repo root with
+`WARN_THRESHOLD=` and `BLOCK_THRESHOLD=` lines to override the defaults. The right number
+depends on the codebase, not on this hook. Only those two integers are read, by pattern:
+the file is never sourced, so a config committed to a repo cannot run shell on every edit.
+The split advice stays the hook's, so a project can move the line but cannot turn the
+advice into something unhelpful.
 
 ### lint-on-edit.sh
 **Event:** PostToolUse (Write, Edit)
@@ -142,6 +162,10 @@ Add to `settings.json`:
 
 - **Exit 2** with specific line numbers on stderr so Claude can fix and retry.
 - Exempt a single site with an inline comment: `// silent-ok` (JS/TS) or `# silent-ok` (Python).
+- Skips `*/scratchpad/*`. A one-off probe in the session scratchpad is deleted with the
+  session, so holding it to the re-raise-or-log-with-context contract is noise, not safety.
+  The exemption is deliberately not `/tmp/*`: on Linux that is where `mktemp -d` puts real
+  project checkouts, including this repo's own test fixtures.
 - Pairs with the guidance in `guides/hooks-reference.md` § "Block silent error patterns".
 
 ### block-dangerous-commands.sh
@@ -166,6 +190,116 @@ Add to `settings.json`:
   ]
 }
 ```
+
+### rm-scope-guard.py
+**Event:** PreToolUse (Bash)
+**What it does:** Allows `rm` whose targets are inside the working directory, blocks `rm`
+whose targets escape it: absolute paths, `../` escapes, `~/...`, `$HOME/...`.
+
+`block-dangerous-commands.sh` catches only `rm` on `/`, `/*`, `~`, and `$HOME`, which is the
+catastrophic case and not the common one. The common one is an agent tidying up and reaching
+one directory too far. The two hooks are complementary; wire both.
+
+- **Exit 2** listing the escaping targets, with the alternatives: move the path into a
+  project-local `.trash/`, or run the `rm` from a shell outside Claude.
+- Logs an `rm-scope` event to the `.harness` ledger.
+- **Escape hatch:** `CLAUDE_ALLOW_DANGEROUS=1`, the same variable
+  `block-dangerous-commands.sh` uses.
+
+Tokenizing is quote-aware (`shlex` with `punctuation_chars`), so the remote payload of
+`ssh host 'cd /opt/app && rm -rf cache'` stays one argument and is never judged against the
+local working directory. `$HOME` and `${HOME}` are expanded; no other variable is, because
+guessing at an undefined variable's value produces false positives in the blocking
+direction.
+
+Four things it deliberately handles, each of which is a bypass if missed:
+
+- **`cd` is tracked across the command.** `cd .. && rm -rf sibling` resolves the target
+  against the parent, not against the payload's cwd. The *boundary* stays fixed at the
+  session's working directory: `cd` changes where a relative path resolves, never how far
+  the guard lets you reach. `cd -` makes the directory unknowable, so relative targets after
+  it are treated as escaping.
+- **Wrapped invocations.** `sudo -n rm`, `command rm`, `env rm`, `\rm`, and `/bin/rm` are all
+  found, by scanning each segment for the `rm` token rather than by requiring it first.
+- **Redirection operands are not targets.** `rm -f build.log >/dev/null` used to be blocked
+  because `shlex` emits `/dev/null` as its own token.
+- **Symlinks are resolved**, so `/tmp` and `/var/folders` paths on macOS compare correctly
+  against a realpath'd boundary.
+
+**Known gaps:** commands that build `rm` arguments dynamically (`xargs rm`, `find -exec rm`,
+`eval`) pass through unchecked, because the `rm` wrapping is not visible to a string parser.
+Because targets are resolved through symlinks, removing an in-cwd symlink that points
+outside cwd is blocked even though `rm` would only delete the link. Both err in the safe
+direction.
+
+### worktree-session-prompt.sh + worktree-exit-offer.sh
+**Events:** SessionStart, Stop
+**What they do together:** Keep parallel agents from colliding in one checkout.
+
+`worktree-session-prompt.sh` reports at session start whether this is the shared main
+checkout or a linked worktree, with the branch and the uncommitted-file count. In the main
+checkout it instructs Claude to ask, before the first edit, whether to take a fresh worktree
+instead. Other sessions and agents use that same checkout, so a branch flip there can
+silently revert a peer's edits.
+
+`worktree-exit-offer.sh` fires on Stop and tells you the worktree is safe to leave, but only
+once it is clean and fully pushed to its upstream: that is the one moment when exiting loses
+nothing. It is silent in the main checkout, on a dirty tree, on a detached HEAD, with no
+upstream, and with any unpushed commit.
+
+It emits `systemMessage`, which surfaces to you and does not re-enter the model's turn, so
+the note is addressed to you rather than phrased as an instruction to Claude. Making Claude
+act on it would mean blocking the Stop event to force another turn, which is too aggressive
+for an advisory that fires every time a worktree happens to be clean.
+
+The session-start message names the base branch it suggests, derived from
+`refs/remotes/origin/HEAD` or the current branch's upstream, and falls back to "this repo's
+default branch" when neither exists. It does not assume `origin/main`.
+
+Both are no-ops outside a git repository.
+
+### check-new-comments.py (opt-in)
+**Event:** PreToolUse (Write, Edit, MultiEdit)
+**What it does:** Blocks an edit that adds a comment, block comment, or Python docstring, on
+the principle that code should carry its own meaning. Wire it with
+`./install.sh --with-comment-guard`.
+
+- **Exit 2** listing the offending added lines, with the rewrite the rule wants: a name, a
+  type, a named constant, a small function, or a test whose name states the constraint.
+- Diffs against the prior text, so only *added* comments count. Deleting comments is always
+  allowed; reflowing or rewording an existing one counts as adding.
+- Catches **trailing** comments (`x = 1  # why`, `const x = 1; // why`) as well as
+  whole-line ones. Quoted strings are masked before the search, so `"https://example.com"`
+  and `tag = "# not a comment"` are not false positives. Unmasked JS regex literals holding
+  adjacent slashes (`/\//g`) are a known false positive; exempt the file if you hit it.
+- Toolchain directives pass on their own: shebangs, `noqa`, `type: ignore`,
+  `eslint-disable`, `@ts-expect-error`, `biome-ignore`, coverage pragmas, `SPDX-`,
+  `silent-ok`, and about twenty more, in trailing position too.
+- **Exemptions:** a glob per line in `.harness/comment-exempt` (project) or
+  `~/.claude/comment-exempt` (global). Both files are read; either can match. A glob is
+  tried against the repo-relative path (`src/generated/*.ts`), the absolute path, and the
+  bare basename (`*.generated.ts`), so committed project globs need no machine-specific
+  prefix.
+- The language tables live in `comment_syntax.py` beside it.
+- **Escape hatch:** `CLAUDE_SKIP_COMMENT_CHECK=1`.
+
+This is a house style, not a correctness rule, which is why it is off by default. The case
+for it: a comment is a second copy of the design that no test covers, no type checks, and no
+reviewer verifies, so it drifts silently and then misleads with the authority of source.
+
+### check-em-dash.py (opt-in)
+**Event:** PostToolUse (Write, Edit)
+**What it does:** Blocks em dashes (U+2014) and horizontal bars (U+2015) in `.md`, `.mdx`,
+and `.markdown` files. Wire it with `./install.sh --with-em-dash-guard`.
+
+- **Exit 2** listing the offending lines. En dashes and hyphens are not flagged, because
+  they are correct in numeric ranges and flagging them produces mostly false positives.
+- Skips anything outside `$CLAUDE_PROJECT_DIR`, and skips `.harness/`, `.superpowers/`, and
+  `node_modules/` inside it: those hold gitignored agent-written reports, not prose this
+  rule governs.
+- Logs an `em-dash` event to the `.harness` ledger.
+
+Also a house style. Wire it if em dashes read as machine-written to you.
 
 ### suggest-loop-improvements.sh
 **Event:** UserPromptSubmit
@@ -245,6 +379,17 @@ Three properties the metric depends on:
 `recurring_events` metric (events in `(rule, path-prefix)` clusters seen ≥ N times
 in a window). The `/reflect` skill uses it to propose improvements and to measure
 whether recurring mistakes drop over time.
+
+With no `--ledger` argument it merges the ledger of **every linked worktree** of the current
+repo and normalizes paths to the main checkout's root, so an event logged as an absolute
+path or under `.claude/worktrees/<name>/` lands in the same cluster as its peers. Hooks log
+relative to whichever checkout the edit happened in, so when parallel worktrees are the
+normal workflow, reading a single ledger hides most of the signal. Pass `--ledger PATH`
+to read exactly one file instead.
+
+The Python hooks (`rm-scope-guard.py`, `check-new-comments.py`, `check-em-dash.py`) call the
+same `lib/log-event.sh`, resolved relative to the hook's own directory, so they log into the
+same ledger.
 
 Gitignore the raw ledger but keep the distilled reflections (run from your project root):
 `echo '.harness/ledger.jsonl' >> .gitignore`

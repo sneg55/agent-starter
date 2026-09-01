@@ -23,6 +23,10 @@ hook_input_init "${1:-}"
 FILE_PATH=$(hook_input_file)
 [ -z "$FILE_PATH" ] || [ ! -f "$FILE_PATH" ] && exit 0
 
+case "$FILE_PATH" in
+  */scratchpad/*) exit 0 ;;
+esac
+
 VIOLATIONS=""
 
 case "$FILE_PATH" in

@@ -11,12 +11,19 @@ bash "$INSTALL" --claude-dir "$tmp/.claude" >/dev/null; rc=$?
 assert_eq 0 "$rc" "fresh install exits 0"
 assert_eq 0 "$([ -x "$tmp/.claude/hooks/check-file-size.sh" ]; echo $?)" "hooks copied executable"
 assert_eq 0 "$([ -x "$tmp/.claude/hooks/lib/log-event.sh" ]; echo $?)" "lib helper copied"
+assert_eq 0 "$([ -x "$tmp/.claude/hooks/rm-scope-guard.py" ]; echo $?)" "python hooks copied executable"
 n=$(jq '[.hooks.PostToolUse[].hooks[].command] | length' "$tmp/.claude/settings.json")
 assert_eq 3 "$n" "three PostToolUse hooks wired"
 pre=$(jq '[.hooks.PreToolUse[].hooks[].command] | length' "$tmp/.claude/settings.json")
-assert_eq 1 "$pre" "dangerous-commands wired in PreToolUse"
+assert_eq 2 "$pre" "dangerous-commands and rm-scope-guard wired in PreToolUse"
+sess=$(jq '[.hooks.SessionStart[].hooks[].command] | length' "$tmp/.claude/settings.json")
+assert_eq 2 "$sess" "codebase-health and worktree-session-prompt wired in SessionStart"
+stop=$(jq '[.hooks.Stop[].hooks[].command] | length' "$tmp/.claude/settings.json")
+assert_eq 1 "$stop" "worktree-exit-offer wired in Stop"
 guard=$(jq '[.hooks.PreToolUse[].hooks[].command | select(test("require-read-before-edit"))] | length' "$tmp/.claude/settings.json")
 assert_eq 0 "$guard" "read guard not wired by default"
+style=$(jq '[.. | strings | select(test("check-new-comments|check-em-dash"))] | length' "$tmp/.claude/settings.json")
+assert_eq 0 "$style" "style guards not wired by default"
 ver=$(cat "$tmp/.claude/hooks/.agent-starter-version" 2>/dev/null)
 assert_eq "$(cat "$ROOT/VERSION")" "$ver" "version stamped"
 
@@ -48,6 +55,17 @@ guard=$(jq '[.hooks.PreToolUse[].hooks[].command | select(test("require-read-bef
 assert_eq 1 "$guard" "read guard wired with flag"
 track=$(jq '[.hooks.PostToolUse[].hooks[].command | select(test("track-reads"))] | length' "$tmp/.claude/settings.json")
 assert_eq 1 "$track" "track-reads wired with flag"
+rm -rf "$tmp"
+
+tmp=$(mktemp -d)
+bash "$INSTALL" --claude-dir "$tmp/.claude" --with-comment-guard --with-em-dash-guard >/dev/null
+comments=$(jq '[.hooks.PreToolUse[].hooks[].command | select(test("check-new-comments"))] | length' "$tmp/.claude/settings.json")
+assert_eq 1 "$comments" "comment guard wired with flag"
+emdash=$(jq '[.hooks.PostToolUse[].hooks[].command | select(test("check-em-dash"))] | length' "$tmp/.claude/settings.json")
+assert_eq 1 "$emdash" "em-dash guard wired with flag"
+bash "$INSTALL" --claude-dir "$tmp/.claude" --with-comment-guard --with-em-dash-guard >/dev/null
+comments=$(jq '[.hooks.PreToolUse[].hooks[].command | select(test("check-new-comments"))] | length' "$tmp/.claude/settings.json")
+assert_eq 1 "$comments" "opt-in guards are idempotent too"
 rm -rf "$tmp"
 
 # Case 5: refuses to touch invalid settings.json
