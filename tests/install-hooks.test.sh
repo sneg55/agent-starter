@@ -68,6 +68,18 @@ comments=$(jq '[.hooks.PreToolUse[].hooks[].command | select(test("check-new-com
 assert_eq 1 "$comments" "opt-in guards are idempotent too"
 rm -rf "$tmp"
 
+tmp=$(mktemp -d)
+HOME_BACKUP="$HOME"
+HOME="$tmp" bash "$INSTALL" --claude-dir "$tmp/.claude" --with-comment-guard --with-em-dash-guard >/dev/null
+HOME="$HOME_BACKUP"
+tildes=$(jq '[.. | strings | select(startswith("python3") and contains("\"~/"))] | length' "$tmp/.claude/settings.json")
+assert_eq 0 "$tildes" "no python3 command quotes a tilde, which the shell would not expand"
+for cmd in $(jq -r '.. | strings | select(startswith("python3"))' "$tmp/.claude/settings.json" | sed 's/^python3 "//; s/"$//'); do
+  resolved=$(HOME="$tmp" bash -c "printf '%s' \"$cmd\"")
+  assert_eq 0 "$([ -f "$resolved" ]; echo $?)" "wired python hook path resolves to a real file: $cmd"
+done
+rm -rf "$tmp"
+
 # Case 5: refuses to touch invalid settings.json
 tmp=$(mktemp -d)
 mkdir -p "$tmp/.claude"

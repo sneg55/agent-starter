@@ -59,8 +59,10 @@ fi
 if [ "$CLAUDE_DIR" = "$HOME/.claude" ]; then
   # shellcheck disable=SC2088  # literal ~ wanted: Claude Code expands it at hook run time
   H='~/.claude/hooks'
+  H_INSIDE_DOUBLE_QUOTES='$HOME/.claude/hooks'
 else
   H="$HOOKS_DST"
+  H_INSIDE_DOUBLE_QUOTES="$HOOKS_DST"
 fi
 
 SETTINGS="$CLAUDE_DIR/settings.json"
@@ -73,7 +75,7 @@ if ! jq -e . "$SETTINGS" >/dev/null 2>&1; then
 fi
 
 TMP=$(mktemp)
-jq --arg h "$H" --argjson guard "$READ_GUARD" \
+jq --arg h "$H" --arg pyh "$H_INSIDE_DOUBLE_QUOTES" --argjson guard "$READ_GUARD" \
    --argjson comments "$COMMENT_GUARD" --argjson emdash "$EM_DASH_GUARD" '
   def entry($matcher; $cmd; $t; $msg):
     {matcher: $matcher, hooks: [{type: "command", command: $cmd, timeout: $t, statusMessage: $msg}]};
@@ -88,7 +90,7 @@ jq --arg h "$H" --argjson guard "$READ_GUARD" \
   | add("PostToolUse"; entry("Write|Edit"; $h + "/lint-on-edit.sh"; 30; "Linting..."))
   | add("PostToolUse"; entry("Write|Edit"; $h + "/check-silent-errors.sh"; 5; "Checking error handling..."))
   | add("PreToolUse";  entry("Bash"; $h + "/block-dangerous-commands.sh"; 3; "Checking command safety..."))
-  | add("PreToolUse";  entry("Bash"; "python3 \"" + $h + "/rm-scope-guard.py\""; 5; "Checking rm scope..."))
+  | add("PreToolUse";  entry("Bash"; "python3 \"" + $pyh + "/rm-scope-guard.py\""; 5; "Checking rm scope..."))
   | add("SessionStart"; {hooks: [{type: "command", command: ($h + "/check-codebase-health.sh ."), timeout: 15, statusMessage: "Checking codebase health..."}]})
   | add("SessionStart"; {hooks: [{type: "command", command: ($h + "/worktree-session-prompt.sh"), timeout: 5, statusMessage: "Checking worktree..."}]})
   | add("Stop"; {hooks: [{type: "command", command: ($h + "/worktree-exit-offer.sh"), timeout: 5}]})
@@ -98,10 +100,10 @@ jq --arg h "$H" --argjson guard "$READ_GUARD" \
      | add("PreToolUse";  entry("Edit|Write"; $h + "/require-read-before-edit.sh"; 3; "Checking read log..."))
      else . end)
   | (if $comments == 1 then
-       add("PreToolUse"; entry("Write|Edit|MultiEdit"; "python3 \"" + $h + "/check-new-comments.py\""; 10; "Checking for new comments..."))
+       add("PreToolUse"; entry("Write|Edit|MultiEdit"; "python3 \"" + $pyh + "/check-new-comments.py\""; 10; "Checking for new comments..."))
      else . end)
   | (if $emdash == 1 then
-       add("PostToolUse"; entry("Write|Edit"; "python3 \"" + $h + "/check-em-dash.py\""; 10; "Checking for em dashes..."))
+       add("PostToolUse"; entry("Write|Edit"; "python3 \"" + $pyh + "/check-em-dash.py\""; 10; "Checking for em dashes..."))
      else . end)
 ' "$SETTINGS" > "$TMP"
 mv "$TMP" "$SETTINGS"
