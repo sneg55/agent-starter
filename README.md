@@ -107,6 +107,7 @@ Drop-in configs in [`templates/`](templates/). Copy the ones you need.
 
 **Lint (paired with [`guides/lint-rules-for-ai.md`](guides/lint-rules-for-ai.md)):**
 - `biome.jsonc` + `eslint.config.mjs` (TypeScript). Biome owns formatting and fast syntactic rules; ESLint owns type-aware correctness (`no-floating-promises`, the `no-unsafe-*` family), import resolution (catches hallucinated modules), and security rules.
+- `eslint.shadcn.mjs` (opt-in, Tailwind v4 + React). Spreads [`@shadcn/lint`](https://github.com/shadcn-ui/lint) into the ESLint config: no raw palette colors, no arbitrary values, no inline styles, no unknown classes, no restyling design-system components via `className`. `/new-project` asks about it for UI stacks; `/adopt-project` offers it when Tailwind v4 is detected.
 - `ruff.toml` + `pyrightconfig.json`, the Python counterpart. Ruff owns formatting and fast rules; pyright (strict) owns type-aware analysis.
 
 **Error handling & boundaries:**

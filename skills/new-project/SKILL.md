@@ -53,6 +53,13 @@ Ask these questions **one at a time** before taking any action:
 1. **Project name** - what is the name of the project?
 2. **Description** - one sentence describing what it does.
 3. **Tech stack** - language, framework, package manager (e.g. "TypeScript, Next.js, pnpm").
+   - **Tailwind design-system lint** - ask this follow-up only when the stack is
+     TypeScript/JavaScript with a UI framework (React, Next.js, Remix, Vite +
+     React): "Does the project use Tailwind v4, and should I add `@shadcn/lint`
+     (blocks raw palette colors, arbitrary values, inline styles, unknown
+     classes, and restyling design-system components via `className`)? yes/no".
+     Record the answer; it drives the optional block in Phase 2 step 3. Skip
+     the question for non-UI stacks.
 4. **Optional components** - ask **only about what Phase 0 reported as missing**.
    If hooks and all skills are already installed, skip this question entirely -
    state what was detected ("Hooks v0.4.4 and all 8 skills already installed
@@ -178,6 +185,22 @@ cp <repo-path>/templates/eslint.config.mjs <project-name>/eslint.config.mjs
 cd <project-name> && npm i -D @biomejs/biome eslint typescript-eslint eslint-plugin-import \
   eslint-plugin-sonarjs eslint-plugin-security eslint-plugin-eslint-comments
 ```
+
+**Tailwind design-system lint (opt-in, only if the Phase 1 follow-up was yes):**
+
+```bash
+cp <repo-path>/templates/eslint.shadcn.mjs <project-name>/eslint.shadcn.mjs
+cd <project-name> && npm i -D @shadcn/lint
+```
+
+Then wire the fragment into `eslint.config.mjs`: add
+`import shadcnRules from './eslint.shadcn.mjs'` next to the other imports and
+`...shadcnRules,` as the last entry of the `tseslint.config(...)` call. Set
+`settings.shadcn.ui` in the fragment to the project's component import prefix
+(`@/components/ui` is the shadcn default) and the `**/components/ui/**`
+override to the directory that owns the components. `@shadcn/lint` needs
+ESLint 9.30+ and Tailwind v4; it finds the theme without a `components.json`,
+so shadcn/ui itself is not required.
 
 If the stack is Python:
 
@@ -313,6 +336,7 @@ Confirm each item before reporting done:
 - [ ] `.gitignore`, `.env.example`, `README.md`, and `CLAUDE.local.md` present (`CLAUDE.local.md` gitignored)
 - [ ] `.claude/rules/starter-patterns.md` written
 - [ ] Lint configs copied + deps installed - `biome.jsonc` + `eslint.config.mjs` (TS/JS) or `ruff.toml` + `pyrightconfig.json` (Python); skipped for other stacks
+- [ ] `eslint.shadcn.mjs` copied, `@shadcn/lint` installed, and the fragment spread into `eslint.config.mjs` - only if the Tailwind follow-up was yes
 - [ ] Foundation templates copied - env boundary + error registry + truncator for the stack (TS or Python); skipped for other stacks
 - [ ] Hooks present in `~/.claude/hooks/` and configured in `settings.json` (installed now if selected, or already detected in Phase 0)
 - [ ] Skills present in `~/.claude/skills/` (missing ones installed if selected; already-present ones left as-is)
