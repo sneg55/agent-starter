@@ -58,6 +58,10 @@ Build a gap report before proposing anything.
 
 - **Lint/format:** ESLint configs (flat or legacy), `biome.json`, Prettier;
   ruff (`ruff.toml` or `[tool.ruff]` in pyproject), mypy/pyright configs
+- **Tailwind design system:** `tailwindcss` 4.x in `package.json` dependencies,
+  or a shadcn `components.json`. Either one makes the project a candidate for
+  the `@shadcn/lint` fragment (Tier 3). Record the ESLint major.minor while
+  here: the plugin needs 9.30+.
 - **Instructions:** `CLAUDE.md`, `CLAUDE.local.md`, `.claude/rules/`, `AGENTS.md`
 - **Hooks:** `.claude/settings.json` hook entries; agent-starter hooks already
   installed system-wide (`~/.claude/hooks/.agent-starter-version` - record the
@@ -120,6 +124,13 @@ is applied unapproved.
   (b) migrate to the starter flat config, carrying their custom rules over.
 - **Prettier present** → don't add Biome's formatter (two formatters fight);
   adopt the ESLint half only.
+- **Tailwind v4 present** (per the inventory) → offer
+  `templates/eslint.shadcn.mjs` + `npm i -D @shadcn/lint`, spread into their
+  flat config as `...shadcnRules`. Adapt `settings.shadcn.ui` and the
+  `**/components/ui/**` override to where their components live. Existing
+  ESLint below 9.30 has to be upgraded first. Run it on the codebase and
+  downgrade rules that fail en masse to `warn` with a ratchet note, same as
+  the base config.
 
 **Python:**
 

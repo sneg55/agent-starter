@@ -90,6 +90,23 @@ Some rules circulate as "AI guardrails" but produce more noise than signal on re
 | Wholesale `eslint-plugin-unicorn` | Many rules are taste (`no-null`, `prefer-node-protocol`, `no-array-reduce`); dropping it in wholesale is a style transplant, not a guardrail. |
 | Project-wide `no-console` as `off` | Agents leave `console.log` everywhere. Keep it `error` with `{ allow: ['warn', 'error'] }`. |
 
+## Opt-in: Tailwind design-system rules (`templates/eslint.shadcn.mjs`)
+
+Not part of the default config, because it only applies to React + Tailwind v4 projects. `/new-project` asks about it when the stack has a UI framework; `/adopt-project` offers it when Tailwind v4 or a shadcn `components.json` is detected. The fragment spreads [`@shadcn/lint`](https://github.com/shadcn-ui/lint) into the ESLint half (Biome has no plugin API for it). It needs ESLint 9.30+ and Tailwind v4; it finds the theme without a `components.json`, so shadcn/ui itself is not required.
+
+Each rule maps to an agent habit in UI code:
+
+| Rule | Agent habit it blocks |
+|---|---|
+| `no-restyle` (`allow: ['layout']`) | Overriding a design-system component's padding, shape, or color through `className` instead of using its `size`/`variant` props. Margin and width stay allowed so pages can still place components. |
+| `no-raw-colors` | `bg-pink-500` and friends: the agent reaches for the Tailwind palette instead of the project's theme tokens. The error names the closest declared token and the theme file. |
+| `no-arbitrary-values` (`allow: ['layout']`) | `p-[13px]`: off-scale values the agent invents to match a mockup pixel-for-pixel. The error suggests the on-scale equivalent. |
+| `no-inline-styles` | `style={{ padding: 4 }}` and `<style>` blocks: styling that escapes Tailwind and the theme entirely. |
+| `no-unknown-classes` | `rounded-huge`: hallucinated utilities that generate no CSS and fail silently. Falls back to the bundled class grammar if the theme cannot load. |
+| `require-static-classes` | `` `bg-${tone}-500` ``: component classes built at runtime that Tailwind cannot see and the linter cannot check. |
+
+The second config object turns `no-restyle`, `no-arbitrary-values`, and `require-static-classes` off inside `**/components/ui/**`, because the components themselves own their appearance and legitimately need structural values like `ring-[3px]`. Adjust that glob and `settings.shadcn.ui` to wherever the project's components live. Everything else follows the base config's rules: errors, not warnings, and the post-edit hook feeds them back to the agent. On adoption into an existing codebase, downgrade rules that fail en masse to `warn` with a ratchet note rather than mass-fixing.
+
 ## Tier 7 - Enforcement (where the leverage lives)
 
 Rules only shape agent behavior if the agent sees failures. Wire lint into the loop:

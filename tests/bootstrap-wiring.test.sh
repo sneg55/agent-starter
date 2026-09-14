@@ -41,4 +41,12 @@ check "templates/CLAUDE.md" "One worker per worktree" "CLAUDE template carries t
 check "templates/CLAUDE.md" "Never commit internal documents" "CLAUDE template carries the public-repo rule"
 check "templates/CLAUDE.md" "blocked by a classifier" "CLAUDE template carries the classifier rule"
 
+check "templates/eslint.shadcn.mjs" "@shadcn/lint" "shadcn fragment imports the plugin"
+check "skills/new-project/SKILL.md" "eslint.shadcn.mjs" "new-project offers the shadcn fragment"
+check AGENT.md "eslint.shadcn.mjs" "AGENT.md offers the shadcn fragment"
+check "skills/adopt-project/SKILL.md" "eslint.shadcn.mjs" "adopt-project offers the shadcn fragment"
+check ADOPT.md "eslint.shadcn.mjs" "ADOPT.md offers the shadcn fragment"
+check "guides/lint-rules-for-ai.md" "eslint.shadcn.mjs" "lint guide documents the shadcn fragment"
+check README.md "eslint.shadcn.mjs" "README lists the shadcn fragment"
+
 exit $ASSERT_FAILED
