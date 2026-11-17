@@ -30,7 +30,7 @@ HOOKS_VER=$( [ -f ~/.claude/hooks/.agent-starter-version ] && cat ~/.claude/hook
 HOOKS_N=$( ls ~/.claude/hooks/*.sh 2>/dev/null | wc -l | tr -d ' ' )
 
 # Skills: the starter skills this bootstrap installs
-for s in commit commit-push-pr simplify remember dream new-project adopt-project reflect; do
+for s in commit commit-push-pr simplify remember dream new-project adopt-project reflect test-audit; do
   [ -d ~/.claude/skills/$s ] && echo "skill:$s present" || echo "skill:$s missing"
 done
 echo "hooks: version ${HOOKS_VER:-none}, $HOOKS_N scripts"
@@ -62,10 +62,10 @@ Ask these questions **one at a time** before taking any action:
      the question for non-UI stacks.
 4. **Optional components** - ask **only about what Phase 0 reported as missing**.
    If hooks and all skills are already installed, skip this question entirely -
-   state what was detected ("Hooks v0.4.4 and all 8 skills already installed
+   state what was detected ("Hooks v0.4.4 and all 9 skills already installed
    system-wide, skipping") and move on. Otherwise offer the missing set:
    - Hooks (auto-enforce file size limits, lint-on-save, silent-error and dangerous-command blocking, codebase health checks at `~/.claude/hooks/`)
-   - Skills (commit, commit-push-pr, simplify, remember, dream, new-project, adopt-project, reflect at `~/.claude/skills/`)
+   - Skills (commit, commit-push-pr, simplify, remember, dream, new-project, adopt-project, reflect, test-audit at `~/.claude/skills/`)
    - Both
    - Neither
 5. **Repo path** - what is the local path to the agent-starter repo? (e.g. `~/code/agent-starter`). Always required: the CLAUDE.md template, foundation templates, and lint configs are all copied from the repo. (Hooks and skills also install from here when selected and not already present.)
@@ -173,6 +173,9 @@ Apply these when already editing the relevant code. Never as a bulk refactor.
   (`guides/abort-signal-threading.md`).
 - Adding a new tool -> use the directory-per-tool layout
   (`guides/tool-authoring-pattern.md`).
+- Adding or changing a test -> pass the test-audit authoring gate: the
+  behavior it protects, the regression that fails it, why existing proof
+  misses it, and no test-only production seam.
 ```
 
 Optionally also create topic stubs (`testing.md`, `git-workflow.md`, `code-style.md`, `security.md`) per `templates/NEW_PROJECT_PROMPT.md` - offer these but don't force them.
@@ -281,7 +284,7 @@ each skill only when its directory is absent:
 
 ```bash
 mkdir -p ~/.claude/skills
-for s in commit commit-push-pr simplify remember dream new-project adopt-project reflect; do
+for s in commit commit-push-pr simplify remember dream new-project adopt-project reflect test-audit; do
   [ -d ~/.claude/skills/$s ] || cp -r <repo-path>/skills/$s ~/.claude/skills/
 done
 ```
@@ -298,6 +301,7 @@ Installed skills:
 - `/new-project` - this skill (bootstrap a new project)
 - `/adopt-project` - apply these patterns to an existing codebase
 - `/reflect` - read ledger, cluster recurring mistakes, propose improvements
+- `/test-audit` - authoring gate for new tests; read-only-first audit of an existing suite
 
 ### 7. Initialize the self-improvement ledger
 

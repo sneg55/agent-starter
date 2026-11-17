@@ -16,7 +16,7 @@ HOOKS_VER=$( [ -f ~/.claude/hooks/.agent-starter-version ] && cat ~/.claude/hook
 HOOKS_N=$( ls ~/.claude/hooks/*.sh 2>/dev/null | wc -l | tr -d ' ' )
 
 # Skills: the starter skills this bootstrap installs
-for s in commit commit-push-pr simplify remember dream new-project adopt-project reflect; do
+for s in commit commit-push-pr simplify remember dream new-project adopt-project reflect test-audit; do
   [ -d ~/.claude/skills/$s ] && echo "skill:$s present" || echo "skill:$s missing"
 done
 echo "hooks: version ${HOOKS_VER:-none}, $HOOKS_N scripts"
@@ -46,7 +46,7 @@ Ask these questions **one at a time** before taking any action:
    If hooks and all skills are already installed, skip this question entirely -
    state what was detected and move on. Otherwise offer the missing set:
    - Hooks (auto-enforce file size limits, lint-on-save, silent-error and dangerous-command blocking, codebase health checks at `~/.claude/hooks/`)
-   - Skills (commit, commit-push-pr, simplify, remember, dream, new-project, adopt-project, reflect at `~/.claude/skills/`)
+   - Skills (commit, commit-push-pr, simplify, remember, dream, new-project, adopt-project, reflect, test-audit at `~/.claude/skills/`)
    - Both
    - Neither
 5. **Repo path** - what is the local path to the agent-starter repo? (e.g. `~/code/agent-starter`). Always required: the CLAUDE.md template, foundation templates, and lint configs are all copied from the repo. (Hooks and skills also install from here when selected and not already present.)
@@ -237,7 +237,7 @@ overwriting (a blind `cp -r` would clobber local edits):
 
 ```bash
 mkdir -p ~/.claude/skills
-for s in commit commit-push-pr simplify remember dream new-project adopt-project reflect; do
+for s in commit commit-push-pr simplify remember dream new-project adopt-project reflect test-audit; do
   [ -d ~/.claude/skills/$s ] || cp -r <repo-path>/skills/$s ~/.claude/skills/
 done
 ```

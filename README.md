@@ -15,7 +15,7 @@ A toolkit for setting up projects that AI agents can work in safely and producti
 
 | Component | What it does | Where |
 |-----------|--------------|-------|
-| **Skills** | 8 slash commands: scaffold, adopt, commit, reflect, remember, dream | [`skills/`](skills/) |
+| **Skills** | 9 slash commands: scaffold, adopt, commit, reflect, remember, dream, test-audit | [`skills/`](skills/) |
 | **Hooks** | Enforcement (lint, file-size, dangerous-command) + signal capture for the loop | [`hooks/`](hooks/) |
 | **Templates** | Drop-in configs: Biome, ESLint, ruff, pyright, `CLAUDE.md`, env boundaries | [`templates/`](templates/) |
 | **Guides** | 9 engineering patterns for AI-agent codebases | [`guides/`](guides/) |
@@ -79,6 +79,7 @@ Install all skills globally with [npx skills](https://github.com/vercel-labs/ski
 | `/reflect` | The **promote** step of the loop: reads the `.harness` ledger and `feedback` memories, clusters recurring mistakes, proposes gated rule/threshold/lint/ADR changes. |
 | `/remember` | Scans auto-memory and proposes promotions to `CLAUDE.md`, `CLAUDE.local.md`, or shared memory. Detects duplicates, stale entries, conflicts. |
 | `/dream` | Memory consolidation: merges, prunes, and re-indexes memory files across four phases (orient, gather, consolidate, prune). |
+| `/test-audit` | Authoring gate for every new or changed test, plus a read-only-first audit that ledgers an existing suite (retain, fix, consolidate, delete), proves each repair by mutation, and finds production exports only tests call. |
 
 ### Hooks
 

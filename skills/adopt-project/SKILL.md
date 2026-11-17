@@ -67,10 +67,14 @@ Build a gap report before proposing anything.
   installed system-wide (`~/.claude/hooks/.agent-starter-version` - record the
   stamped version to compare against the repo `VERSION`)
 - **Skills:** which starter skills are already present system-wide - check
-  `~/.claude/skills/{commit,commit-push-pr,simplify,remember,dream,new-project,adopt-project,reflect}`.
+  `~/.claude/skills/{commit,commit-push-pr,simplify,remember,dream,new-project,adopt-project,reflect,test-audit}`.
   Hooks and skills are **user-global**, so anything already installed already
   covers this project - don't re-propose it.
 - **Tests:** `package.json` `scripts.test`, pytest/tox config, Makefile targets
+  - Also record the test file count, the test projects (unit, integration,
+    e2e), and the number of test-only exports from
+    `python3 -I <repo-path>/skills/test-audit/scripts/find-test-only-exports.py .`
+    This is informational: adoption never prunes tests.
 - **File-size health:** run `bash <repo-path>/hooks/check-codebase-health.sh`
   from the project root, or
   `find src -name '*.ts' -o -name '*.py' | xargs wc -l | sort -rn | head -20`
@@ -149,6 +153,10 @@ is applied unapproved.
 `error_ids.py`), truncator (`truncate-for-context.ts` /
 `truncate_for_context.py`). Adapt import paths to the project's layout. Skip
 any the project already has an equivalent for.
+If Tier 4 is adopted too, list each copied template's path at the end of
+`.claude/rules/starter-patterns.md`. Until new code imports them they look
+unused, and `/test-audit` treats files named there as scaffold to ask about,
+not dead code to delete.
 
 ### Tier 4 - Gradual-only (never a bulk refactor)
 
@@ -171,11 +179,22 @@ Apply these when already editing the relevant code. Never as a bulk refactor.
   (`guides/abort-signal-threading.md`).
 - Adding a new tool → use the directory-per-tool layout
   (`guides/tool-authoring-pattern.md`).
+- Adding or changing a test → pass the test-audit authoring gate: the
+  behavior it protects, the regression that fails it, why existing proof
+  misses it, and no test-only production seam.
 ```
 
 Explicitly out of scope: restructuring directories, rewriting existing error
 handling, or converting APIs wholesale. The starter's layout is a target for
 new code, not a migration mandate.
+
+### Follow-up - test audit (offer after the adoption branch merges)
+
+If the project has tests, offer `/test-audit` as its own task: a fresh branch
+from the merged default branch, starting with the skill's read-only ledger.
+Never run it on the adoption branch. Every Tier 3 step is checked against
+the project's test suite, so pruning that suite mid-adoption weakens the
+check the adoption relies on. If the project has no tests, do not offer it.
 
 ## Phase 4: Apply
 
@@ -191,6 +210,7 @@ Confirm each item before reporting done:
 - [ ] Gap report presented; every applied item was explicitly approved
 - [ ] Existing CLAUDE.md content preserved (diff shows additions only)
 - [ ] Project tests + lint pass (or were already red and are unchanged)
+- [ ] No test deleted or rewritten on the adoption branch
 - [ ] `.harness/ledger.jsonl` gitignored, if the loop was adopted
 - [ ] Contradictions surfaced and the developer's choices recorded
       (in CLAUDE.md or the implementation notes)
