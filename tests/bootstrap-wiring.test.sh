@@ -49,4 +49,17 @@ check ADOPT.md "eslint.shadcn.mjs" "ADOPT.md offers the shadcn fragment"
 check "guides/lint-rules-for-ai.md" "eslint.shadcn.mjs" "lint guide documents the shadcn fragment"
 check README.md "eslint.shadcn.mjs" "README lists the shadcn fragment"
 
+check "skills/test-audit/SKILL.md" "find-test-only-exports.py" "test-audit points at its finder"
+check "skills/test-audit/SKILL.md" "ledger-template.md" "test-audit points at its ledger template"
+check "skills/new-project/SKILL.md" "reflect test-audit; do" "new-project installs test-audit"
+check AGENT.md "reflect test-audit; do" "AGENT.md installs test-audit"
+check "skills/adopt-project/SKILL.md" "reflect,test-audit}" "adopt-project checks for test-audit"
+check ADOPT.md "reflect,test-audit}" "ADOPT.md checks for test-audit"
+check "skills/adopt-project/SKILL.md" "Never run it on the adoption branch" "adopt-project keeps the audit off the adoption branch"
+check ADOPT.md "Never run it on the adoption branch" "ADOPT.md keeps the audit off the adoption branch"
+check "skills/adopt-project/SKILL.md" "test-audit authoring gate" "adopt-project writes the authoring gate rule"
+check ADOPT.md "test-audit authoring gate" "ADOPT.md writes the authoring gate rule"
+check "skills/new-project/SKILL.md" "test-audit authoring gate" "new-project writes the authoring gate rule"
+check README.md "/test-audit" "README lists test-audit"
+
 exit $ASSERT_FAILED
