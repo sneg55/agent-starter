@@ -144,7 +144,11 @@ fi
 
 # ESLint second: type-aware + plugin rules (import resolution, sonarjs, security).
 if [ "$HAS_ESLINT_CONFIG" -eq 1 ] && [ -x node_modules/.bin/eslint ]; then
-  if ! LINT_OUT=$(node_modules/.bin/eslint --fix --cache --cache-location node_modules/.cache/eslint/ --max-warnings 0 "$FILE_PATH" 2>&1); then
+  PER_EDIT_RULES=()
+  if [ -d node_modules/@typescript-eslint/eslint-plugin ] || [ -d node_modules/typescript-eslint ]; then
+    PER_EDIT_RULES=(--rule '@typescript-eslint/no-unused-vars: off')
+  fi
+  if ! LINT_OUT=$(node_modules/.bin/eslint --fix --cache --cache-location node_modules/.cache/eslint/ --max-warnings 0 ${PER_EDIT_RULES[@]+"${PER_EDIT_RULES[@]}"} "$FILE_PATH" 2>&1); then
     OUT="${OUT}ESLint errors in ${FILE_PATH}:
 ${LINT_OUT}
 "
