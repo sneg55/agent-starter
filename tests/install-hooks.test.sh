@@ -24,6 +24,9 @@ guard=$(jq '[.hooks.PreToolUse[].hooks[].command | select(test("require-read-bef
 assert_eq 0 "$guard" "read guard not wired by default"
 style=$(jq '[.. | strings | select(test("check-new-comments|check-em-dash"))] | length' "$tmp/.claude/settings.json")
 assert_eq 0 "$style" "style guards not wired by default"
+depvuln=$(jq '[.. | strings | select(test("dep-vuln-scan"))] | length' "$tmp/.claude/settings.json")
+assert_eq 0 "$depvuln" "dep-vuln gate not wired by default"
+assert_eq 1 "$([ -e "$tmp/.claude/hooks/dep-vuln-scan.py" ]; echo $?)" "dep-vuln scanner not copied by default"
 ver=$(cat "$tmp/.claude/hooks/.agent-starter-version" 2>/dev/null)
 assert_eq "$(cat "$ROOT/VERSION")" "$ver" "version stamped"
 
@@ -70,14 +73,22 @@ rm -rf "$tmp"
 
 tmp=$(mktemp -d)
 HOME_BACKUP="$HOME"
-HOME="$tmp" bash "$INSTALL" --claude-dir "$tmp/.claude" --with-comment-guard --with-em-dash-guard >/dev/null
+HOME="$tmp" bash "$INSTALL" --claude-dir "$tmp/.claude" --with-comment-guard --with-em-dash-guard --with-dep-vuln-gate >/dev/null
 HOME="$HOME_BACKUP"
 tildes=$(jq '[.. | strings | select(startswith("python3") and contains("\"~/"))] | length' "$tmp/.claude/settings.json")
 assert_eq 0 "$tildes" "no python3 command quotes a tilde, which the shell would not expand"
-for cmd in $(jq -r '.. | strings | select(startswith("python3"))' "$tmp/.claude/settings.json" | sed 's/^python3 "//; s/"$//'); do
+for cmd in $(jq -r '.. | strings | select(startswith("python3"))' "$tmp/.claude/settings.json" | sed 's/^python3 "\([^"]*\)".*/\1/'); do
   resolved=$(HOME="$tmp" bash -c "printf '%s' \"$cmd\"")
   assert_eq 0 "$([ -f "$resolved" ]; echo $?)" "wired python hook path resolves to a real file: $cmd"
 done
+rm -rf "$tmp"
+
+tmp=$(mktemp -d)
+bash "$INSTALL" --claude-dir "$tmp/.claude" --with-dep-vuln-gate >/dev/null
+bash "$INSTALL" --claude-dir "$tmp/.claude" --with-dep-vuln-gate >/dev/null
+gate=$(jq '[.hooks.PreToolUse[].hooks[].command | select(test("dep-vuln-scan.py\" --hook$"))] | length' "$tmp/.claude/settings.json")
+assert_eq 1 "$gate" "dep-vuln gate wired once with flag, idempotent on re-run"
+assert_eq 0 "$([ -x "$tmp/.claude/hooks/dep-vuln-scan.py" ]; echo $?)" "dep-vuln scanner copied executable with flag"
 rm -rf "$tmp"
 
 # Case 5: refuses to touch invalid settings.json

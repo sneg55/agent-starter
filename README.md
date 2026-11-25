@@ -15,7 +15,7 @@ A toolkit for setting up projects that AI agents can work in safely and producti
 
 | Component | What it does | Where |
 |-----------|--------------|-------|
-| **Skills** | 9 slash commands: scaffold, adopt, commit, reflect, remember, dream, test-audit | [`skills/`](skills/) |
+| **Skills** | 10 slash commands: scaffold, adopt, commit, reflect, remember, dream, test-audit, dep-vuln-update | [`skills/`](skills/) |
 | **Hooks** | Enforcement (lint, file-size, dangerous-command) + signal capture for the loop | [`hooks/`](hooks/) |
 | **Templates** | Drop-in configs: Biome, ESLint, ruff, pyright, `CLAUDE.md`, env boundaries | [`templates/`](templates/) |
 | **Guides** | 9 engineering patterns for AI-agent codebases | [`guides/`](guides/) |
@@ -80,10 +80,11 @@ Install all skills globally with [npx skills](https://github.com/vercel-labs/ski
 | `/remember` | Scans auto-memory and proposes promotions to `CLAUDE.md`, `CLAUDE.local.md`, or shared memory. Detects duplicates, stale entries, conflicts. |
 | `/dream` | Memory consolidation: merges, prunes, and re-indexes memory files across four phases (orient, gather, consolidate, prune). |
 | `/test-audit` | Authoring gate for every new or changed test, plus a read-only-first audit that ledgers an existing suite (retain, fix, consolidate, delete), proves each repair by mutation, and finds production exports only tests call. |
+| `/dep-vuln-update` | Clears known dependency advisories with the smallest change: scans tracked lockfiles with osv-scanner, bumps direct deps or overrides transitive ones, flags major bumps for you, verifies with the repo's own tests, one commit per repo. |
 
 ### Hooks
 
-Ready-to-use hook scripts in [`hooks/`](hooks/). The plugin wires the nine defaults; `install.sh` wires them into `~/.claude`, and four more are opt-in behind flags. See [`guides/hooks-reference.md`](guides/hooks-reference.md) for the hook system itself. Needs `jq` and `python3`.
+Ready-to-use hook scripts in [`hooks/`](hooks/). The plugin wires the nine defaults; `install.sh` wires them into `~/.claude`, and five more are opt-in behind flags. See [`guides/hooks-reference.md`](guides/hooks-reference.md) for the hook system itself. Needs `jq` and `python3`.
 
 | Hook | Fires on | What it does |
 |------|----------|--------------|
@@ -99,6 +100,7 @@ Ready-to-use hook scripts in [`hooks/`](hooks/). The plugin wires the nine defau
 | `track-reads.sh` + `require-read-before-edit.sh` | Read / Write+Edit | Opt-in (`--with-read-guard`): blocks edits to files not read this session. |
 | `check-new-comments.py` | Write/Edit/MultiEdit | Opt-in (`--with-comment-guard`): blocks edits that add comments or docstrings. Toolchain directives pass. |
 | `check-em-dash.py` | Write/Edit | Opt-in (`--with-em-dash-guard`): blocks em dashes in `.md` / `.mdx` / `.markdown`. |
+| `dep-vuln-scan.py` | Bash | Opt-in (`--with-dep-vuln-gate`): on `git commit` and PR/MR creation, reports known advisories in tracked lockfiles. Never blocks. Needs osv-scanner. |
 | `lib/log-event.sh` | called by hooks | Appends one JSON event to `.harness/ledger.jsonl` (the loop's signal capture). |
 | `harness-ledger-stats.sh` | on demand | Computes the `recurring_events` metric over the ledger, merged across worktrees. |
 

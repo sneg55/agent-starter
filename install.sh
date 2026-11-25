@@ -11,6 +11,7 @@ string is not already present.
 
 Usage: ./install.sh [--claude-dir DIR] [--with-read-guard]
                     [--with-comment-guard] [--with-em-dash-guard]
+                    [--with-dep-vuln-gate]
 
   --claude-dir DIR       target Claude config dir (default: ~/.claude)
   --with-read-guard      also wire track-reads + require-read-before-edit.
@@ -22,6 +23,9 @@ Usage: ./install.sh [--claude-dir DIR] [--with-read-guard]
   --with-em-dash-guard   also wire check-em-dash, which blocks em dashes in
                          .md / .mdx / .markdown files. Off by default, same
                          reason.
+  --with-dep-vuln-gate   also wire the dep-vuln-update scan on git commit and
+                         PR/MR creation. Never blocks. Off by default: it needs
+                         osv-scanner on PATH and queries the OSV.dev API.
 EOF
 }
 
@@ -29,12 +33,14 @@ CLAUDE_DIR="$HOME/.claude"
 READ_GUARD=0
 COMMENT_GUARD=0
 EM_DASH_GUARD=0
+DEP_VULN_GATE=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --claude-dir) CLAUDE_DIR="${2:?--claude-dir needs a path}"; shift 2 ;;
     --with-read-guard) READ_GUARD=1; shift ;;
     --with-comment-guard) COMMENT_GUARD=1; shift ;;
     --with-em-dash-guard) EM_DASH_GUARD=1; shift ;;
+    --with-dep-vuln-gate) DEP_VULN_GATE=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "unknown option: $1" >&2; usage >&2; exit 1 ;;
   esac
@@ -49,6 +55,9 @@ HOOKS_DST="$CLAUDE_DIR/hooks"
 mkdir -p "$HOOKS_DST/lib"
 cp "$REPO"/hooks/*.sh "$REPO"/hooks/*.py "$HOOKS_DST/"
 cp "$REPO"/hooks/lib/*.sh "$HOOKS_DST/lib/"
+if [ "$DEP_VULN_GATE" -eq 1 ]; then
+  cp "$REPO/skills/dep-vuln-update/scripts/scan.py" "$HOOKS_DST/dep-vuln-scan.py"
+fi
 chmod +x "$HOOKS_DST"/*.sh "$HOOKS_DST"/*.py "$HOOKS_DST"/lib/*.sh
 if [ -f "$REPO/VERSION" ]; then
   cp "$REPO/VERSION" "$HOOKS_DST/.agent-starter-version"
@@ -76,7 +85,8 @@ fi
 
 TMP=$(mktemp)
 jq --arg h "$H" --arg pyh "$H_INSIDE_DOUBLE_QUOTES" --argjson guard "$READ_GUARD" \
-   --argjson comments "$COMMENT_GUARD" --argjson emdash "$EM_DASH_GUARD" '
+   --argjson comments "$COMMENT_GUARD" --argjson emdash "$EM_DASH_GUARD" \
+   --argjson depvuln "$DEP_VULN_GATE" '
   def entry($matcher; $cmd; $t; $msg):
     {matcher: $matcher, hooks: [{type: "command", command: $cmd, timeout: $t, statusMessage: $msg}]};
   def has_cmd($event; $cmd):
@@ -105,6 +115,9 @@ jq --arg h "$H" --arg pyh "$H_INSIDE_DOUBLE_QUOTES" --argjson guard "$READ_GUARD
   | (if $emdash == 1 then
        add("PostToolUse"; entry("Write|Edit"; "python3 \"" + $pyh + "/check-em-dash.py\""; 10; "Checking for em dashes..."))
      else . end)
+  | (if $depvuln == 1 then
+       add("PreToolUse"; entry("Bash"; "python3 \"" + $pyh + "/dep-vuln-scan.py\" --hook"; 90; "Checking dependencies for known vulns..."))
+     else . end)
 ' "$SETTINGS" > "$TMP"
 mv "$TMP" "$SETTINGS"
 
@@ -117,5 +130,9 @@ if [ "$COMMENT_GUARD" -eq 1 ]; then
 fi
 if [ "$EM_DASH_GUARD" -eq 1 ]; then
   echo "Em-dash guard wired (check-em-dash)"
+fi
+if [ "$DEP_VULN_GATE" -eq 1 ]; then
+  echo "Dep-vuln gate wired (dep-vuln-scan)"
+  command -v osv-scanner >/dev/null 2>&1 || echo "note: osv-scanner not on PATH, the gate skips until it is installed"
 fi
 exit 0
