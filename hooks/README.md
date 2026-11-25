@@ -15,6 +15,7 @@ duplicate):
 ./install.sh --with-read-guard     # also wire track-reads + require-read-before-edit
 ./install.sh --with-comment-guard  # also wire check-new-comments
 ./install.sh --with-em-dash-guard  # also wire check-em-dash
+./install.sh --with-dep-vuln-gate  # also wire the dep-vuln-update commit gate
 ./install.sh --help                # every flag
 ```
 
@@ -298,6 +299,25 @@ and `.markdown` files. Wire it with `./install.sh --with-em-dash-guard`.
   `node_modules/` inside it: those hold gitignored agent-written reports, not prose this
   rule governs.
 - Logs an `em-dash` event to the `.harness` ledger.
+
+### dep-vuln-scan.py (opt-in)
+**Event:** PreToolUse (Bash)
+**What it does:** When a command contains `git commit`, `gh pr create`, `glab mr create`, or
+`merge_request.create`, scans the lockfiles git tracks in that repo with
+[osv-scanner](https://google.github.io/osv-scanner/installation/) and injects a per-package
+summary (advisory count, the version that clears them, `MAJOR BUMP` flags) so the agent can
+offer the `/dep-vuln-update` skill. Wire it with `./install.sh --with-dep-vuln-gate`, which
+copies `skills/dep-vuln-update/scripts/scan.py` here as `dep-vuln-scan.py`.
+
+- **Never blocks.** Exit 0 always; findings arrive as `additionalContext`.
+- Results are cached per lockfile content per UTC day in `~/.claude/cache/dep-vuln/`, and a
+  given lockfile state is reported at most once per session per gate (commit, PR/MR).
+- A missing osv-scanner or a failed scan is reported once per session, then stays quiet.
+- **Waivers:** advisory ids in `~/.claude/state/dep-vuln-ignore.json`, globally under `ids` or
+  per repo root under `repos`. A repo's own `osv-scanner.toml` is honored too.
+
+Off by default because it needs a binary most setups lack and it sends package names and
+versions to the OSV.dev API.
 
 Also a house style. Wire it if em dashes read as machine-written to you.
 
